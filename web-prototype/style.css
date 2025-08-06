@@ -1,0 +1,40 @@
+/* General Body and Font Styling */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f0f2f5; /* A light grey background for the page */
+}
+
+/* Custom scrollbar for better aesthetics across the application */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* View Management Classes */
+/* Hides all views by default */
+.view {
+    display: none;
+}
+
+/* Shows the currently active view */
+.view.active {
+    display: block;
+}
+
+/* Style for Right-to-Left (RTL) text, essential for Hebrew and Yiddish */
+.rtl {
+    direction: rtl;
+    text-align: right;
+}
