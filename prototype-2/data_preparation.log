@@ -1,0 +1,2 @@
+2025-08-06 19:57:20,917 - INFO - --- Starte Datenaufbereitungsprozess ---
+2025-08-06 19:57:20,917 - ERROR - Keine Ledger-CSV-Dateien im 'data'-Verzeichnis gefunden. Breche ab.
