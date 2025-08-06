@@ -153,9 +153,3 @@ These files provide aggregated views of the borrowing data for easier analysis.
 | `<F>` | `object` (String) | A flag, likely 'F' to indicate a female borrower. |
 | `Book Selection`, `Book Link` | `object` (String) | Purpose unclear, often empty. |
 | `Unnamed: 8`, `Unnamed: 9` | `float64` | Empty or auxiliary columns. |
-
------
-
-## Conclusion
-
-This document provides a complete and exhaustive analysis of the structure, content, and relationships within the provided set of CSV files. All data fields have been documented, and the data model has been fully explained. This `DATA.md` contains all the information derived from the files themselves.
