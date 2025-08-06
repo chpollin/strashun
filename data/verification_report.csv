@@ -1,0 +1,12 @@
+metric,claimed,actual,match,diff
+Total transactions,4942.0,5310.0,✗,368.0
+Transactions 1902,2410.0,2559.0,✗,149.0
+Transactions 1934,319.0,367.0,✗,48.0
+Transactions 1940,128.0,299.0,✗,171.0
+Unique borrowers (from transactions),1414.0,149.0,✗,-1265.0
+Unique books (from transactions),1603.0,2617.0,✗,1014.0
+Matrix sparsity %,99.7,99.8,✓,0.09999999999999432
+December transactions,3136.0,3140.0,✗,
+December %,63.5,63.1,✓,-0.3999999999999986
+November transactions,1135.0,1135.0,✓,
+November %,23.0,22.8,✓,-0.1999999999999993

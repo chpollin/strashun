@@ -1,0 +1,22 @@
+category,metric,claimed,actual,match,symbol,diff,diff_pct
+Counts,Total transactions,4942.0,5011.0,False,✗,69.0,1.396195872116552
+Period Counts,Transactions 1902,2410.0,2414.0,False,✗,,
+Period Counts,Transactions 1903-1904,2085.0,2085.0,True,✓,,
+Period Counts,Transactions 1934,319.0,352.0,False,✗,,
+Period Counts,Transactions 1940,128.0,160.0,False,✗,,
+Entities,Unique borrowers,1414.0,1587.0,False,✗,173.0,12.234794908062236
+Entities,Unique books (by ID),1603.0,352.0,False,✗,-1251.0,-78.04117280099813
+Temporal,December transactions,3136.0,3140.0,False,✗,,
+Temporal,December %,63.5,63.1,True,✓,-0.3999999999999986,-0.6299212598425175
+Temporal,November transactions,1135.0,1135.0,True,✓,,
+Temporal,November %,23.0,22.8,True,✓,-0.1999999999999993,-0.8695652173913012
+Temporal,Monday transactions,993.0,993.0,True,✓,,
+Temporal,Wednesday transactions,847.0,879.0,False,✗,,
+Temporal,Friday transactions,812.0,813.0,False,✗,,
+Distribution,Single-book borrowers %,57.4,58.4,True,✓,1.0,1.7421602787456445
+Distribution,Max books by one borrower,132.0,109.0,False,✗,,
+Distribution,Avg books per borrower,3.5,3.2,True,✓,-0.2999999999999998,-8.571428571428566
+Matrix,Matrix sparsity %,99.7,99.1,True,✓,-0.6000000000000085,-0.6018054162487548
+Popular Items,'אחיאסף' borrows,245.0,45.0,False,✗,-200.0,-81.63265306122449
+Popular Items,'השחר' borrows,203.0,28.0,False,✗,-175.0,-86.20689655172413
+Popular Items,'השלח' borrows,139.0,24.0,False,✗,-115.0,-82.73381294964028
