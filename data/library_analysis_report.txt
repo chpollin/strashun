@@ -1,0 +1,213 @@
+
+================================================================================
+                     STRASHUN LIBRARY HISTORICAL ANALYSIS REPORT
+================================================================================
+
+Generated on: August 06, 2025 at 15:29:53
+
+================================================================================
+EXECUTIVE SUMMARY
+================================================================================
+
+This report analyzes the historical borrowing records of the Strashun Library
+in Vilna, covering a period from 1902 to 1940 
+(37.4 years).
+
+KEY FINDINGS:
+• 4,942 total borrowing transactions
+• 1,414 individual borrowers  
+• 1,603 books in collection (1,603 were actually borrowed)
+• 1,049 transactions for books without complete catalog metadata
+• 554 books have complete title information
+
+================================================================================
+COLLECTION OVERVIEW
+================================================================================
+
+LIBRARY HOLDINGS:
+• Total Books:                    1,603
+• Books with Complete Metadata:   554 (34.6%)
+• Books with Author Information:  284 (17.7%)
+• Books with Publisher Info:      494 (30.8%)
+• Ghost Records:                  1,049 (transactions exist but no catalog data)
+• Books Never Borrowed:           0
+
+LANGUAGE DISTRIBUTION:
+• heb                  519 books
+• yid                  14 books
+• heb;ger              4 books
+• heb;yid              2 books
+• yid;heb              2 books
+• heb;lat              1 books
+• ger;heb              1 books
+• ara;heb              1 books
+• heb;arc;lat          1 books
+• arc;heb              1 books
+
+
+================================================================================
+BORROWING ACTIVITY ANALYSIS
+================================================================================
+
+DATE RANGE: November 14, 1902 - April 10, 1940
+
+ANNUAL BORROWING ACTIVITY:
+• 1902: 2,410 transactions
+• 1903: 1,861 transactions
+• 1904: 224 transactions
+• 1934: 319 transactions
+• 1940: 128 transactions
+
+MONTHLY PATTERNS:
+• January      319 transactions
+• February     224 transactions
+• April        128 transactions
+• November     1,135 transactions
+• December     3,136 transactions
+
+DAY OF WEEK PATTERNS:
+• Monday       993 transactions
+• Wednesday    847 transactions
+• Friday       812 transactions
+• Tuesday      762 transactions
+• Thursday     691 transactions
+• Sunday       423 transactions
+• Saturday     414 transactions
+
+
+================================================================================
+MOST POPULAR BOOKS
+================================================================================
+
+The following books were the most frequently borrowed:
+
++------+--------------------+--------------------+----------------+
+| Rank | Title              | Author             | Times Borrowed |
++------+--------------------+--------------------+----------------+
+| 1    | אחיאסף לוח-עם ספ...| Unknown Author     | 245            |
+| 2    | השחר : ... בו יב...| Unknown Author     | 203            |
+| 3    | השלח מכתב עתי חד...| Unknown Author     | 139            |
+| 4    | דברי ימי היהודים...| Unknown Author     | 116            |
+| 5    | התועה בדרכי החיי...| Unknown Author     | 107            |
+| 6    | זכרונות לבית דוד...| Unknown Author     | 105            |
+| 7    | [תלמוד בבלי] / ....| עובדיה מברטנורה....| 89             |
+| 8    | תורה, נביאים וכת...| Unknown Author     | 83             |
+| 9    | המליץ.             | טראכטמאן, ישעיהו...| 75             |
+| 10   | הדור יוצא אחת בש...| Unknown Author     | 61             |
+| 11   | מסתרי פאריז : הי...| Unknown Author     | 61             |
+| 12   | שולחן ערוך / ......| Unknown Author     | 49             |
+| 13   | עולם כמנהגו : ספ...| גארדאן, יהודה לי...| 48             |
+| 14   | ספר דברי ימי עול...| חריף, שלום בן אי...| 46             |
+| 15   | הישראלי : צייטונ...| Unknown Author     | 42             |
+| 16   | Book ID 99002240...| Unknown Author     | 40             |
+| 17   | קול מבשר : הוספה...| Unknown Author     | 38             |
+| 18   | חטאת נעורים, או,...| Unknown Author     | 36             |
+| 19   | על פרשת דרכים : ...| רוזאניס, יהודא. ...| 36             |
+| 20   | ספר כור עני : בת...| Unknown Author     | 30             |
++------+--------------------+--------------------+----------------+
+
+================================================================================
+MOST POPULAR AUTHORS
+================================================================================
+
+The most frequently borrowed authors were:
+
++------+--------------------------+------------------+
+| Rank | Author                   | Total Borrowings |
++------+--------------------------+------------------+
+| 1    | טראכטמאן, ישעיהו, b. 1...| 124              |
+| 2    | עובדיה מברטנורה. ; Oba...| 89               |
+| 3    | חריף, שלום בן איסר, 17...| 50               |
+| 4    | גארדאן, יהודה ליב, 186...| 48               |
+| 5    | פין, שמואל יוסף, 1818-...| 44               |
+| 6    | מאפו, אברהם בן יקותיאל...| 39               |
+| 7    | רוזאניס, יהודא. ; Juda...| 36               |
+| 8    | שטיינבעגג, יהושע, נפ׳ ...| 27               |
+| 9    | קולון,יוסף. ; Joseph b...| 25               |
+| 10   | שמואל פייווש כהנא. ; S...| 24               |
+| 11   | מלאך, יצחק שמעון. ; Yi...| 23               |
+| 12   | היילפרין, פ. ; P. Heil...| 16               |
+| 13   | ווייס, אייזק הירש, 181...| 15               |
+| 14   | Ẓevi Rabinowitz ha-Coh...| 14               |
+| 15   | גינצבורג, מרדכי אהרן, ...| 12               |
++------+--------------------------+------------------+
+
+================================================================================
+BORROWER ANALYSIS
+================================================================================
+
+ACTIVITY SUMMARY:
+• Total Borrowers:              1,414
+• Average Books per Borrower:   3.5
+• Median Books per Borrower:    1.0
+• Most Active Borrower:         132 books
+
+BORROWING PATTERNS:
+• Single-book borrowers:        811 (57.4%)
+• Active borrowers (5+ books):  223 (15.8%)
+• Heavy users (10+ books):      121 (8.6%)
+• Super users (20+ books):      34 (2.4%)
+
+MOST ACTIVE BORROWERS:
+
++------+--------------------+--------------------+--------------+
+| Rank | Name               | Total Transactions | Unique Books |
++------+--------------------+--------------------+--------------+
+| 1    | אברהם אברהם קצנל...| 132                | 13           |
+| 2    | מאיר מאצקין        | 107                | 42           |
+| 3    | אברהם גארדאן       | 88                 | 36           |
+| 4    | בנימין מער         | 80                 | 44           |
+| 5    | יעקב טריוואש       | 60                 | 20           |
+| 6    | Штернфельдъ Гиршъ  | 52                 | 27           |
+| 7    | Кремеръ Биняминъ   | 50                 | 21           |
+| 8    | יעקב וויינשטיין    | 49                 | 25           |
+| 9    | Кобленцъ Хаимъ     | 42                 | 20           |
+| 10   | מאיר גאלאמב        | 38                 | 23           |
+| 11   | נתן גרינבלאט       | 33                 | 10           |
+| 12   | צבי טייץ           | 32                 | 11           |
+| 13   | Левинъ Гиршъ       | 31                 | 16           |
+| 14   | חיים הערצמאן       | 31                 | 15           |
+| 15   | חיים קריינעש       | 31                 | 7            |
+| 16   | אהרן ראבינאוויץ    | 30                 | 12           |
+| 17   | יעקב סגל           | 30                 | 20           |
+| 18   | Мацкинъ Мееръ      | 29                 | 12           |
+| 19   | משה אנטוקולסקי     | 29                 | 22           |
+| 20   | Шапиро Бенцiонъ    | 28                 | 17           |
++------+--------------------+--------------------+--------------+
+
+================================================================================
+DATA QUALITY ASSESSMENT
+================================================================================
+
+COMPLETENESS:
+• Complete Records:     78.8% of transactions have complete book metadata
+• Missing Metadata:     1,049 transactions reference books not in catalog  
+• Catalog Coverage:     1,603 of 1,603 cataloged books were actually borrowed
+• Utilization Rate:     100.0% of collection was borrowed
+
+HISTORICAL CONTEXT:
+This dataset represents a fascinating snapshot of Jewish intellectual life in 
+Vilna during the early 20th century. The Strashun Library was one of the most 
+important Jewish libraries in Eastern Europe, serving as a center of learning 
+and culture.
+
+The borrowing patterns reveal insights into:
+• Popular literary and religious texts of the period
+• Reading habits across different seasons and years  
+• Community engagement with the library as a cultural institution
+• The diversity of the collection and its users
+
+TECHNICAL NOTES:
+• Analysis covers 37.4 years of borrowing history
+• 1,049 "ghost records" exist where transactions reference books not 
+  present in the master catalog
+• Date formatting standardized to YYYY-MM-DD format
+• Borrower names normalized to reduce duplicates from variant spellings
+
+================================================================================
+END OF REPORT
+================================================================================
+
+This report was generated automatically from the historical library records.
+For questions about the data or methodology, please refer to the accompanying 
+documentation.
