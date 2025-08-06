@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strashun Library - Digital Archive (1902-1940)</title>
+    <meta name="description" content="Explore the historical lending records of the Strashun Library in Vilna, offering insights into Jewish intellectual life in Eastern Europe before the Holocaust.">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Vis.js for Network Visualization -->
+    <script src="https://unpkg.com/vis-network@9.1.2/dist/vis-network.min.js"></script>
+    <link href="https://unpkg.com/vis-network@9.1.2/dist/dist/vis-network.min.css" rel="stylesheet">
+    
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📚</text></svg>">
+</head>
+<body class="bg-gray-50">
+    <!-- Loading Spinner -->
+    <div id="loading-spinner" class="fixed inset-0 bg-white z-50 flex items-center justify-center">
+        <div class="text-center">
+            <div class="spinner w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p class="text-lg text-gray-600">Loading library data...</p>
+            <p class="text-sm text-gray-400 mt-2">Preparing 4,942 transactions from historical records...</p>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="main-content" style="display: none;">
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center py-4">
+                    <div class="flex items-center">
+                        <h1 class="text-2xl font-bold text-gray-800">
+                            <span class="text-3xl mr-2">📚</span> 
+                            Strashun Library Archive
+                        </h1>
+                        <span class="ml-4 text-sm text-gray-500 hidden sm:inline">
+                            Vilna, 1902-1940
+                        </span>
+                    </div>
+                    
+                    <!-- Desktop Navigation -->
+                    <nav class="hidden md:flex space-x-4">
+                        <a href="#" class="nav-link px-3 py-2 text-sm font-medium active" data-view="dashboard">Dashboard</a>
+                        <a href="#" class="nav-link px-3 py-2 text-sm font-medium" data-view="books">Books</a>
+                        <a href="#" class="nav-link px-3 py-2 text-sm font-medium" data-view="borrowers">Borrowers</a>
+                        <a href="#" class="nav-link px-3 py-2 text-sm font-medium" data-view="network">Network</a>
+                        <a href="#" class="nav-link px-3 py-2 text-sm font-medium" data-view="timeline">Timeline</a>
+                        <a href="#" class="nav-link px-3 py-2 text-sm font-medium" data-view="statistics">Statistics</a>
+                    </nav>
+
+                    <!-- Mobile Menu Button -->
+                    <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Mobile Navigation -->
+                <nav id="mobile-menu" class="md:hidden hidden pb-4">
+                    <a href="#" class="nav-link block px-3 py-2 text-base font-medium active" data-view="dashboard">Dashboard</a>
+                    <a href="#" class="nav-link block px-3 py-2 text-base font-medium" data-view="books">Books</a>
+                    <a href="#" class="nav-link block px-3 py-2 text-base font-medium" data-view="borrowers">Borrowers</a>
+                    <a href="#" class="nav-link block px-3 py-2 text-base font-medium" data-view="network">Network</a>
+                    <a href="#" class="nav-link block px-3 py-2 text-base font-medium" data-view="timeline">Timeline</a>
+                    <a href="#" class="nav-link block px-3 py-2 text-base font-medium" data-view="statistics">Statistics</a>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 overflow-y-auto">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                
+                <!-- Dashboard View -->
+                <div id="dashboard-view" class="view active">
+                    <!-- Quick Stats -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                        <div class="card quick-stat-card cursor-pointer hover:shadow-lg transition-shadow" data-target="books">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500">Total Books</p>
+                                    <p class="text-2xl font-bold text-blue-600" id="stat-total-books">0</p>
+                                </div>
+                                <svg class="w-12 h-12 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <div class="card quick-stat-card cursor-pointer hover:shadow-lg transition-shadow" data-target="borrowers">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500">Total Borrowers</p>
+                                    <p class="text-2xl font-bold text-green-600" id="stat-total-borrowers">0</p>
+                                </div>
+                                <svg class="w-12 h-12 text-green-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <div class="card quick-stat-card cursor-pointer hover:shadow-lg transition-shadow" data-target="timeline">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500">Transactions</p>
+                                    <p class="text-2xl font-bold text-purple-600" id="stat-total-transactions">0</p>
+                                </div>
+                                <svg class="w-12 h-12 text-purple-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <div class="card quick-stat-card cursor-pointer hover:shadow-lg transition-shadow" data-target="statistics">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-500">Female Borrowers</p>
+                                    <p class="text-2xl font-bold text-pink-600" id="stat-female-borrowers">0</p>
+                                </div>
+                                <svg class="w-12 h-12 text-pink-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        <!-- Popular Books Chart -->
+                        <div class="card">
+                            <h3 class="text-lg font-semibold mb-4">Most Popular Books</h3>
+                            <div class="chart-container" style="height: 400px;">
+                                <canvas id="popular-books-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Active Readers Chart -->
+                        <div class="card">
+                            <h3 class="text-lg font-semibold mb-4">Most Active Readers</h3>
+                            <div class="chart-container" style="height: 400px;">
+                                <canvas id="active-readers-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Charts -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Period Distribution -->
+                        <div class="card">
+                            <h3 class="text-md font-semibold mb-3">Period Distribution</h3>
+                            <div class="chart-container" style="height: 200px;">
+                                <canvas id="period-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Gender Distribution -->
+                        <div class="card">
+                            <h3 class="text-md font-semibold mb-3">Gender Distribution</h3>
+                            <div class="chart-container" style="height: 200px;">
+                                <canvas id="gender-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Seasonality -->
+                        <div class="card">
+                            <h3 class="text-md font-semibold mb-3">Monthly Activity</h3>
+                            <div class="chart-container" style="height: 200px;">
+                                <canvas id="seasonality-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Language Distribution -->
+                        <div class="card">
+                            <h3 class="text-md font-semibold mb-3">Languages</h3>
+                            <div class="chart-container" style="height: 200px;">
+                                <canvas id="language-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Books View -->
+                <div id="books-view" class="view">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold mb-4">Books Collection</h2>
+                        
+                        <!-- Search and Filters -->
+                        <div class="card mb-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                                <div class="lg:col-span-2">
+                                    <input type="text" id="book-search" 
+                                           class="form-input w-full" 
+                                           placeholder="Search books by title or author...">
+                                </div>
+                                <select id="book-sort" class="form-select">
+                                    <option value="relevance">Sort by Relevance</option>
+                                    <option value="alpha">Sort Alphabetically</option>
+                                    <option value="popularity">Sort by Popularity</option>
+                                </select>
+                                <select id="book-period-filter" class="form-select">
+                                    <option value="all">All Periods</option>
+                                    <option value="1902">1902</option>
+                                    <option value="1903">1903-1904</option>
+                                    <option value="1934">1934</option>
+                                    <option value="1940">1940</option>
+                                </select>
+                                <select id="book-language-filter" class="form-select">
+                                    <option value="all">All Languages</option>
+                                    <option value="heb">Hebrew</option>
+                                    <option value="yid">Yiddish</option>
+                                    <option value="ger">German</option>
+                                    <option value="rus">Russian</option>
+                                </select>
+                            </div>
+                            <div class="flex justify-between items-center mt-4">
+                                <div id="book-results-count" class="text-sm text-gray-600"></div>
+                                <div class="flex gap-2">
+                                    <button id="book-clear-filters" class="btn btn-secondary text-sm">Clear Filters</button>
+                                    <button id="book-export-csv" class="btn btn-primary text-sm">Export CSV</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Book List -->
+                        <div class="card">
+                            <div id="book-list" class="list-container" style="max-height: 600px; overflow-y: auto;"></div>
+                            <div id="books-pagination" class="mt-4"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Borrowers View -->
+                <div id="borrowers-view" class="view">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold mb-4">Library Patrons</h2>
+                        
+                        <!-- Search and Filters -->
+                        <div class="card mb-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <input type="text" id="borrower-search" 
+                                       class="form-input" 
+                                       placeholder="Search borrowers...">
+                                <select id="borrower-gender-filter" class="form-select">
+                                    <option value="all">All Genders</option>
+                                    <option value="W">Female</option>
+                                    <option value="M">Male</option>
+                                </select>
+                                <select id="borrower-activity-filter" class="form-select">
+                                    <option value="all">All Activity Levels</option>
+                                    <option value="1-5">1-5 books</option>
+                                    <option value="6-20">6-20 books</option>
+                                    <option value="21+">21+ books (Power Readers)</option>
+                                </select>
+                                <select id="borrower-period-filter" class="form-select">
+                                    <option value="all">All Periods</option>
+                                    <option value="1902">Active in 1902</option>
+                                    <option value="1903-1904">Active in 1903-1904</option>
+                                    <option value="1934">Active in 1934</option>
+                                    <option value="1940">Active in 1940</option>
+                                </select>
+                            </div>
+                            <div class="flex justify-between items-center mt-4">
+                                <div id="borrower-results-count" class="text-sm text-gray-600"></div>
+                                <div class="flex gap-2">
+                                    <button id="borrower-clear-filters" class="btn btn-secondary text-sm">Clear Filters</button>
+                                    <button id="borrower-export-csv" class="btn btn-primary text-sm">Export CSV</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Borrower List -->
+                        <div class="card">
+                            <div id="borrower-list" class="list-container" style="max-height: 600px; overflow-y: auto;"></div>
+                            <div id="borrowers-pagination" class="mt-4"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Network View -->
+                <div id="network-view" class="view">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold mb-4">Network Analysis</h2>
+                        
+                        <!-- Network Controls -->
+                        <div class="card mb-6">
+                            <div class="flex flex-wrap gap-4 items-center">
+                                <select id="network-period-filter" class="form-select">
+                                    <option value="all">All Periods</option>
+                                    <option value="1902">1902</option>
+                                    <option value="1903-1904">1903-1904</option>
+                                    <option value="1934">1934</option>
+                                    <option value="1940">1940</option>
+                                </select>
+                                <select id="network-layout" class="form-select">
+                                    <option value="physics">Physics Layout</option>
+                                    <option value="hierarchical">Hierarchical Layout</option>
+                                </select>
+                                <button id="network-refresh" class="btn btn-primary">
+                                    <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                    </svg>
+                                    Refresh
+                                </button>
+                                <div id="network-stats" class="text-sm text-gray-600 ml-auto"></div>
+                            </div>
+                            <p class="text-xs text-gray-500 mt-2">
+                                💡 Tip: Click nodes to view details, double-click to show ego network
+                            </p>
+                        </div>
+
+                        <!-- Network Graph -->
+                        <div class="card">
+                            <div id="network-graph" style="height: 600px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline View -->
+                <div id="timeline-view" class="view">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold mb-4">Timeline Analysis</h2>
+                        
+                        <!-- Timeline Controls -->
+                        <div class="card mb-6">
+                            <div class="flex flex-wrap gap-4">
+                                <select id="timeline-granularity" class="form-select">
+                                    <option value="yearly">Yearly</option>
+                                    <option value="period">By Period</option>
+                                </select>
+                                <select id="timeline-metric" class="form-select">
+                                    <option value="total">Total Transactions</option>
+                                    <option value="unique_borrowers">Unique Borrowers</option>
+                                    <option value="unique_books">Unique Books</option>
+                                    <option value="gender">Female Percentage</option>
+                                </select>
+                                <button id="timeline-refresh" class="btn btn-primary">Update</button>
+                            </div>
+                        </div>
+
+                        <!-- Timeline Chart -->
+                        <div class="card">
+                            <div class="chart-container" style="height: 400px;">
+                                <canvas id="timeline-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Statistics View -->
+                <div id="statistics-view" class="view">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold mb-4">Detailed Statistics</h2>
+                        <div id="statistics-content"></div>
+                    </div>
+                </div>
+
+                <!-- Detail View -->
+                <div id="detail-view" class="view">
+                    <div class="mb-4">
+                        <button id="back-to-list" class="btn btn-secondary">
+                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                            </svg>
+                            Back to List
+                        </button>
+                    </div>
+                    <div id="detail-content"></div>
+                </div>
+
+                <!-- About View -->
+                <div id="about-view" class="view">
+                    <div class="card">
+                        <h2 class="text-3xl font-bold mb-6">About the Strashun Library Digital Archive</h2>
+                        
+                        <div class="prose max-w-none">
+                            <p class="text-lg mb-4">
+                                This digital archive preserves and makes accessible the lending records of the 
+                                Strashun Library in Vilna (modern-day Vilnius, Lithuania), one of the most important 
+                                Jewish libraries in Eastern Europe before the Holocaust.
+                            </p>
+
+                            <h3 class="text-xl font-semibold mt-6 mb-3">The Collection</h3>
+                            <p class="mb-4">
+                                The dataset contains <strong>4,942 borrowing transactions</strong> involving 
+                                <strong>1,414 individual readers</strong> and <strong>1,603 unique books</strong>, 
+                                offering unprecedented insights into the reading habits and intellectual life of 
+                                the Jewish community in Vilna between 1902 and 1940.
+                            </p>
+
+                            <h3 class="text-xl font-semibold mt-6 mb-3">Historical Context</h3>
+                            <p class="mb-4">
+                                Founded by Mattityahu Strashun (1817-1885), the library served as a vital center 
+                                of Jewish learning and culture. The records captured here span crucial periods:
+                            </p>
+                            <ul class="list-disc pl-6 mb-4">
+                                <li>The late Russian Empire period (1902-1904)</li>
+                                <li>The interwar Polish period (1934, 1940)</li>
+                            </ul>
+                            <p class="mb-4">
+                                The 28-year gap (1905-1933) likely reflects disruptions from World War I, 
+                                the Russian Revolution, and subsequent political reorganizations.
+                            </p>
+
+                            <h3 class="text-xl font-semibold mt-6 mb-3">Key Findings</h3>
+                            <ul class="list-disc pl-6 mb-4">
+                                <li>Hebrew periodicals dominated the most-borrowed materials</li>
+                                <li>Extreme seasonality with 86% of borrowing in November-December</li>
+                                <li>57.4% of readers borrowed only a single book</li>
+                                <li>Dramatic decline in usage from early 1900s to 1940 (93% decrease)</li>
+                            </ul>
+
+                            <h3 class="text-xl font-semibold mt-6 mb-3">Technical Notes</h3>
+                            <p class="mb-4">
+                                This visualization addresses significant challenges including 99.7% data sparsity, 
+                                temporal discontinuities, and 21.2% of transactions lacking complete metadata 
+                                ("ghost records"). The project employs novel visualization approaches including 
+                                ego-network analysis for handling sparse historical data.
+                            </p>
+
+                            <h3 class="text-xl font-semibold mt-6 mb-3">Acknowledgments</h3>
+                            <p class="mb-4">
+                                Data digitization and initial processing by [Original researchers]. 
+                                Metadata enrichment from the National Library of Israel and YIVO Institute.
+                                This web application developed as a digital humanities project to preserve 
+                                and share the memory of this important cultural institution.
+                            </p>
+
+                            <div class="mt-8 p-4 bg-blue-50 rounded-lg">
+                                <p class="text-sm text-blue-800">
+                                    <strong>Note:</strong> This archive represents a fraction of the original 
+                                    Strashun Library collection. The library was looted during the Holocaust, 
+                                    and most of its contents were destroyed. These lending records serve as a 
+                                    precious window into a vibrant intellectual community that was lost.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-white border-t mt-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <div class="text-sm text-gray-600 mb-2 md:mb-0">
+                        © 2024 Strashun Library Digital Archive | 
+                        <a href="#" id="about-link" class="text-blue-600 hover:underline">About</a>
+                    </div>
+                    <div class="flex space-x-4 text-sm text-gray-600">
+                        <span>4,942 transactions</span>
+                        <span>•</span>
+                        <span>1,414 borrowers</span>
+                        <span>•</span>
+                        <span>1,603 books</span>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Ego Network Modal Container -->
+    <div id="ego-network-modal" style="display: none;"></div>
+
+    <!-- JavaScript Files -->
+    <script src="js/app-core.js"></script>
+    <script src="js/app-views.js"></script>
+    <script src="js/app-visualizations.js"></script>
+    <script src="js/test.js"></script>
+</body>
+</html>
