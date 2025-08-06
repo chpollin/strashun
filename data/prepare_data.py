@@ -1,254 +1,150 @@
 import pandas as pd
-import glob
+import numpy as np
 import json
-import os
-import re
 import logging
+from pathlib import Path
 
-# --- Setup Compact Logger ---
+# Setup detailed logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def normalize_borrower_name(name):
+def load_and_prepare_ledgers(data_path):
     """
-    A simple function to normalize borrower names.
-    This can be expanded with more rules.
+    Loads ledgers, cleans them, and standardizes data, including NaN values.
     """
-    if not isinstance(name, str):
-        return name
-    # Example rule: Standardize different spellings of a name
-    name = name.strip()
-    if 'קאצ' in name:
-        name = re.sub(r'קאצינעלנבויגן|קאצענעלענבויגן', 'אברהם קצנלנבוגן (מאוחד)', name)
-    # Add more normalization rules here as needed
-    return name
+    logging.info("Loading and preparing ledger data...")
+    ledger_files = list(data_path.glob('Transcription - Pilot - copy noam - Transcription - Pilot - record-*.csv'))
+    if not ledger_files:
+        logging.error("CRITICAL: No ledger files found.")
+        return pd.DataFrame()
+
+    all_ledgers = []
+    for f in ledger_files:
+        try:
+            df = pd.read_csv(f)
+            df.columns = df.columns.str.strip()
+            year_part = f.stem.split('-')[-1].strip()
+            df['year'] = year_part.split('_')[-1]
+            all_ledgers.append(df)
+        except Exception as e:
+            logging.error(f"Error loading or processing file {f}: {e}")
+
+    if not all_ledgers: return pd.DataFrame()
+
+    ledgers = pd.concat(all_ledgers, ignore_index=True)
+    logging.info(f"Successfully loaded and combined {len(all_ledgers)} ledger files.")
+    
+    # --- FIX for JSON Error: Replace all NaN values with None (which becomes null in JSON) ---
+    ledgers = ledgers.replace({np.nan: None})
+    logging.info("Replaced NaN values with None for JSON compatibility.")
+
+
+    # --- Data Standardization ---
+    if 'id' in ledgers.columns and 'book id' in ledgers.columns:
+        ledgers['book_id'] = ledgers['book id'].fillna(ledgers['id'])
+        ledgers.drop(columns=['id', 'book id'], inplace=True)
+    elif 'id' in ledgers.columns:
+        ledgers.rename(columns={'id': 'book_id'}, inplace=True)
+    elif 'book id' in ledgers.columns:
+        ledgers.rename(columns={'book id': 'book_id'}, inplace=True)
+
+    rename_map = {'ID - record': 'transaction_id', "person's name": 'borrower_name'}
+    ledgers.rename(columns=rename_map, inplace=True)
+
+    if '<F>' in ledgers.columns:
+        ledgers['gender'] = np.where(ledgers['<F>'].astype(str).str.strip().str.lower() == 'x', 'W', 'M')
+        ledgers.drop(columns=['<F>'], inplace=True)
+    else:
+        ledgers['gender'] = 'Unknown'
+
+    ledgers['is_man'] = (ledgers['gender'] == 'M').astype(int)
+    ledgers['is_woman'] = (ledgers['gender'] == 'W').astype(int)
+
+    return ledgers
+
+def load_master_book_catalog(data_path):
+    """Loads and cleans the master book catalog."""
+    logging.info("Loading master book catalog...")
+    catalog_files = list(data_path.glob('*unique books list.csv'))
+    if not catalog_files:
+        logging.error("CRITICAL: Master book catalog not found.")
+        return pd.DataFrame()
+    
+    df = pd.read_csv(catalog_files[0])
+    df.columns = df.columns.str.strip()
+    
+    # --- FIX for JSON Error: Replace NaN values ---
+    df = df.replace({np.nan: None})
+
+    if 'language_nli' in df.columns:
+        df.rename(columns={'language_nli': 'language'}, inplace=True)
+    
+    return df
+
+# (The rest of the functions: create_aggregated_data, create_network_data remain the same)
+def create_aggregated_data(ledgers, catalog):
+    logging.info("Creating aggregated data summaries...")
+    ledgers['year'] = pd.to_numeric(ledgers['year'], errors='coerce')
+    ledgers.dropna(subset=['year'], inplace=True)
+    ledgers['year'] = ledgers['year'].astype(int)
+    by_year = ledgers.groupby('year').agg(total_transactions=('transaction_id', 'size'),men_transactions=('is_man', 'sum'),women_transactions=('is_woman', 'sum')).reset_index()
+    by_gender = ledgers.groupby('gender').agg(total_transactions=('transaction_id', 'size')).reset_index()
+    if not catalog.empty and 'language' in catalog.columns and 'book_id' in ledgers.columns:
+        ledgers['book_id'] = pd.to_numeric(ledgers['book_id'], errors='coerce')
+        catalog['book_id'] = pd.to_numeric(catalog['book_id'], errors='coerce')
+        merged_df = pd.merge(ledgers, catalog, on='book_id', how='left')
+        by_language = merged_df.groupby('language').agg(total_transactions=('transaction_id', 'size')).reset_index()
+    else: by_language = pd.DataFrame()
+    return {'by_year': by_year.to_dict('records'),'by_gender': by_gender.to_dict('records'),'by_language': by_language.to_dict('records')}
+
+def create_network_data(transactions_df):
+    logging.info("Creating pre-aggregated network data...")
+    network_data = {}
+    transactions_df['year'] = pd.to_numeric(transactions_df['year'], errors='coerce')
+    transactions_df.dropna(subset=['year'], inplace=True)
+    transactions_df['year'] = transactions_df['year'].astype(int)
+    time_periods = {'all': (transactions_df['year'].min(), transactions_df['year'].max()),'1846-1866': (1846, 1866),'1867-1881': (1867, 1881),'1882-1900': (1882, 1900),'1901-1940': (1901, 1940)}
+    for period, (start_year, end_year) in time_periods.items():
+        period_transactions = transactions_df[(transactions_df['year'] >= start_year) & (transactions_df['year'] <= end_year)]
+        if period_transactions.empty: continue
+        nodes = []
+        book_nodes = pd.unique(period_transactions['book_id'].dropna())
+        borrower_nodes = pd.unique(period_transactions['borrower_name'].dropna())
+        for book_id in book_nodes: nodes.append({'id': f'book-{book_id}', 'label': str(book_id), 'group': 'book'})
+        for borrower_name in borrower_nodes: nodes.append({'id': f'borrower-{borrower_name}', 'label': borrower_name, 'group': 'borrower'})
+        edges = period_transactions.dropna(subset=['borrower_name', 'book_id']).apply(lambda row: {'from': f'borrower-{row["borrower_name"]}', 'to': f'book-{int(row["book_id"])}'}, axis=1).tolist()
+        network_data[period] = {'nodes': nodes, 'edges': edges}
+    return network_data
 
 def create_data_for_app():
-    """
-    Loads all CSVs, processes them, and exports a single, optimized
-    JSON file for use in a web application.
-    """
-    logging.info("Starting Data Preparation for Strashun Library App.")
+    """Main function to generate the final JSON data for the web app."""
+    logging.info("--- Starting Data Preparation ---")
+    data_path = Path('./data')
+    output_path = Path('./app/library_data.json')
+    
+    ledgers = load_and_prepare_ledgers(data_path)
+    if ledgers.empty: return
 
-    # --- 1. LOAD DATA ---
-    logging.info("[1/5] Loading all source CSV files...")
-    try:
-        # Load the master book catalog
-        books_df = pd.read_csv('Transcription - Pilot - copy noam - unique books list.csv')
-        logging.info(f"  - Loaded book catalog with {len(books_df)} rows.")
-
-        # Load all ledger files
-        ledger_files = glob.glob('Transcription - Pilot - copy noam - Transcription - Pilot - record-*.csv')
-        if not ledger_files:
-            logging.error("No ledger files found. Aborting.")
-            return
-        
-        transactions_list = [pd.read_csv(f) for f in ledger_files]
-        transactions_df = pd.concat(transactions_list, ignore_index=True)
-        logging.info(f"  - Loaded and combined {len(ledger_files)} ledgers into {len(transactions_df)} total transaction rows.")
-
-    except FileNotFoundError as e:
-        logging.error(f"Missing file - {e.filename}. Aborting.")
-        return
-    except Exception as e:
-        logging.error(f"An error occurred during file loading: {e}")
-        return
-
-    # --- 2. CLEAN AND PREPARE DATA ---
-    logging.info("[2/5] Cleaning and preparing data...")
+    catalog = load_master_book_catalog(data_path)
     
-    # --- Clean Transactions ---
-    initial_transactions = len(transactions_df)
+    aggregated_data = create_aggregated_data(ledgers.copy(), catalog.copy())
+    network_data = create_network_data(ledgers.copy())
     
-    # Debug: Print column names to understand the structure
-    logging.info(f"  - Transaction columns: {list(transactions_df.columns)}")
-    
-    # Handle book_id column unification more carefully
-    if 'book id' in transactions_df.columns and 'id' in transactions_df.columns:
-        # Fill missing 'id' values with 'book id' values
-        transactions_df['id'] = transactions_df['id'].fillna(transactions_df['book id'])
-        transactions_df = transactions_df.drop(columns=['book id'])
-    elif 'book id' in transactions_df.columns:
-        transactions_df.rename(columns={'book id': 'id'}, inplace=True)
-    
-    # Rename to standardized column name
-    transactions_df.rename(columns={'id': 'book_id'}, inplace=True)
-    
-    # Convert book_id to numeric, handling various formats
-    transactions_df['book_id'] = pd.to_numeric(transactions_df['book_id'], errors='coerce')
-    
-    # Remove rows with missing critical data
-    transactions_df.dropna(subset=['book_id', 'date', "person's name"], inplace=True)
-    
-    # Convert to int after dropping NaN
-    transactions_df['book_id'] = transactions_df['book_id'].astype(int)
-    
-    # Clean and standardize dates
-    transactions_df['date'] = pd.to_datetime(transactions_df['date'], dayfirst=True, errors='coerce').dt.strftime('%Y-%m-%d')
-    transactions_df.dropna(subset=['date'], inplace=True)
-    
-    # Create transaction IDs
-    transactions_df['transaction_id'] = transactions_df.index.astype(str)
-    logging.info(f"  - Transactions: Kept {len(transactions_df)} of {initial_transactions} rows after cleaning.")
-
-    # --- Clean Books Catalog ---
-    initial_books = len(books_df)
-    
-    # Debug: Print books column names
-    logging.info(f"  - Books columns: {list(books_df.columns)}")
-    
-    # Map column names more carefully
-    book_col_mapping = {}
-    available_cols = books_df.columns.tolist()
-    
-    # Find the correct book ID column
-    id_candidates = ['record_id', 'book_id', 'id']
-    id_col = None
-    for candidate in id_candidates:
-        if candidate in available_cols:
-            id_col = candidate
-            break
-    
-    if id_col is None:
-        logging.error("Could not find book ID column in books catalog!")
-        return
-    
-    book_col_mapping[id_col] = 'book_id'
-    
-    # Map other important columns
-    col_mappings = {
-        'title': 'book_title',
-        'creator-yivo': 'author',
-        'publisher': 'publisher', 
-        'link_to_nli_page': 'nli_link',
-        'language_nli': 'language'
-    }
-    
-    for old_col, new_col in col_mappings.items():
-        if old_col in available_cols:
-            book_col_mapping[old_col] = new_col
-    
-    # Select and rename columns
-    selected_cols = list(book_col_mapping.keys())
-    books_df = books_df[selected_cols].rename(columns=book_col_mapping)
-    
-    # Clean book_id column
-    books_df['book_id'] = pd.to_numeric(books_df['book_id'], errors='coerce')
-    books_df.dropna(subset=['book_id'], inplace=True)
-    books_df['book_id'] = books_df['book_id'].astype(int)
-    books_df.drop_duplicates(subset=['book_id'], keep='first', inplace=True)
-    
-    logging.info(f"  - Book Catalog: Kept {len(books_df)} of {initial_books} unique book records.")
-    logging.info(f"  - Book ID range: {books_df['book_id'].min()} to {books_df['book_id'].max()}")
-    logging.info(f"  - Transaction book ID range: {transactions_df['book_id'].min()} to {transactions_df['book_id'].max()}")
-
-    # --- 3. NORMALIZE BORROWER NAMES ---
-    logging.info("[3/5] Normalizing borrower names...")
-    unique_names_before = transactions_df["person's name"].nunique()
-    transactions_df['borrower_name_normalized'] = transactions_df["person's name"].apply(normalize_borrower_name)
-    unique_names_after = transactions_df['borrower_name_normalized'].nunique()
-    logging.info(f"  - Consolidated {unique_names_before} unique names down to {unique_names_after}.")
-
-    # --- 4. ENRICH AND STRUCTURE DATA ---
-    logging.info("[4/5] Merging data and building final JSON structure...")
-    
-    # Debug merge operation
-    logging.info(f"  - Books available for merge: {len(books_df)}")
-    logging.info(f"  - Transactions to merge: {len(transactions_df)}")
-    
-    # Check for common book_ids
-    common_ids = set(books_df['book_id']).intersection(set(transactions_df['book_id']))
-    logging.info(f"  - Common book IDs between datasets: {len(common_ids)}")
-    
-    merged_df = pd.merge(transactions_df, books_df, on='book_id', how='left')
-    
-    unmatched_transactions = merged_df[merged_df.columns[merged_df.columns.str.endswith('_x') == False]].select_dtypes(include=['object']).isna().all(axis=1).sum()
-    if 'book_title' in merged_df.columns:
-        unmatched_transactions = merged_df['book_title'].isna().sum()
-    else:
-        unmatched_transactions = len(merged_df) - len(common_ids)
-    
-    if unmatched_transactions > 0:
-        logging.warning(f"  - Found {unmatched_transactions} transactions for books not present in the catalog (ghost records).")
-
-    # Fill missing values for string columns
-    str_cols_to_fill = []
-    for col in ['book_title', 'author', 'publisher', 'language', 'nli_link']:
-        if col in merged_df.columns:
-            str_cols_to_fill.append(col)
-            merged_df[col] = merged_df[col].fillna('')
-
-    # Create books list
-    books_list = []
-    for book_id, group in merged_df.groupby('book_id'):
-        first_row = group.iloc[0]
-        book_data = {
-            "id": int(book_id),
-            "transaction_ids": group['transaction_id'].tolist()
-        }
-        
-        # Add available book metadata
-        for col in ['book_title', 'author', 'publisher', 'language', 'nli_link']:
-            if col in first_row.index:
-                book_data[col.replace('book_', '')] = first_row[col]
-            else:
-                book_data[col.replace('book_', '')] = ''
-        
-        books_list.append(book_data)
-
-    # Create borrowers list
-    borrowers_list = []
-    for name, group in merged_df.groupby('borrower_name_normalized'):
-        borrowers_list.append({
-            "name": name,
-            "transaction_ids": group['transaction_id'].tolist()
-        })
-
-    # Create transactions list
-    transaction_cols = ['transaction_id', 'date', 'book_id', 'borrower_name_normalized']
-    available_transaction_cols = [col for col in transaction_cols if col in merged_df.columns]
-    
-    transactions_list = merged_df[available_transaction_cols].rename(
-        columns={'borrower_name_normalized': 'borrower_name'}
-    ).to_dict('records')
-
-    # Create the final structured dictionary
+    # In the final conversion to dict, pandas might re-introduce NaNs if there are Nones in mixed-type columns.
+    # A final pass to convert the dictionaries is the most robust solution.
     final_data = {
-        "books": books_list,
-        "borrowers": borrowers_list,
-        "transactions": transactions_list
+        'transactions': json.loads(ledgers.to_json(orient='records')),
+        'books': json.loads(catalog.to_json(orient='records')) if not catalog.empty else [],
+        'stats': aggregated_data,
+        'network_data': network_data
     }
-    logging.info("  - Final data structure created.")
 
-    # --- 5. EXPORT TO JSON ---
-    logging.info("[5/5] Exporting to JSON file...")
-    output_filename = 'library_data.json'
+    output_path.parent.mkdir(exist_ok=True, parents=True)
     try:
-        with open(output_filename, 'w', encoding='utf-8') as f:
+        with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(final_data, f, ensure_ascii=False, indent=2)
-        
-        # Provide detailed statistics
-        books_with_metadata = sum(1 for book in final_data['books'] if book.get('title', '').strip())
-        books_without_metadata = len(final_data['books']) - books_with_metadata
-        
-        logging.info(f"Successfully created '{output_filename}' with:")
-        logging.info(f"  - {len(final_data['books'])} Total Books")
-        logging.info(f"    - {books_with_metadata} with complete metadata")
-        logging.info(f"    - {books_without_metadata} ghost records (transactions only)")
-        logging.info(f"  - {len(final_data['borrowers'])} Borrowers (normalized)")
-        logging.info(f"  - {len(final_data['transactions'])} Transactions")
-        
-        # Show a sample of books with metadata
-        sample_books = [book for book in final_data['books'][:5] if book.get('title', '').strip()]
-        if sample_books:
-            logging.info("  - Sample books with metadata:")
-            for book in sample_books[:3]:
-                logging.info(f"    - ID {book['id']}: {book.get('title', 'No title')[:50]}...")
-        
+        logging.info(f"--- SUCCESS: Application data created at: {output_path} ---")
     except Exception as e:
-        logging.error(f"Error writing to JSON file: {e}")
-
-    logging.info("Data preparation complete.")
-
+        logging.error(f"FATAL: Failed to write final JSON file: {e}")
 
 if __name__ == '__main__':
     create_data_for_app()
