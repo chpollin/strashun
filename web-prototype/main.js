@@ -1,5 +1,6 @@
 // =================================================================================
-// Strashun Library Digital Interface - Enhanced Main JavaScript File
+// Strashun Library Digital Interface - OPTIMIZED Main JavaScript File
+// Performance improvements based on test results
 // =================================================================================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -12,21 +13,35 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastView = 'dashboard';
     let currentDetail = { type: null, id: null };
 
+    // --- Performance Optimization: Data Indexes ---
+    let transactionIndex = new Map(); // transaction_id -> transaction
+    let bookIndex = new Map(); // book_id -> book
+    let borrowerIndex = new Map(); // borrower_name -> borrower
+    
     // --- Pagination State ---
     const ITEMS_PER_PAGE = 20;
     let bookCurrentPage = 1;
     let borrowerCurrentPage = 1;
 
+    // --- Search Debouncing ---
+    let searchTimeout = null;
+    const SEARCH_DELAY = 300; // ms
+
     // --- Application Initialization ---
     const initApp = async () => {
         try {
+            console.time('Total initialization');
+            
             const response = await fetch('../data/library_data.json');
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             libraryData = await response.json();
 
-            processData();
-            setupEventListeners();
+            console.time('Data processing');
+            processDataOptimized();
+            console.timeEnd('Data processing');
             
+            setupEventListeners();
+            updateStatistics(); // FIX: Update dashboard statistics
             renderDashboard();
             
             // Load state from URL
@@ -36,42 +51,113 @@ document.addEventListener('DOMContentLoaded', () => {
             updateBorrowerView();
             
             document.getElementById('loading-spinner').style.display = 'none';
+            console.timeEnd('Total initialization');
 
         } catch (error) {
             console.error("Failed to load and initialize the application:", error);
-            document.getElementById('loading-spinner').innerHTML = `<p style="color: red;">Failed to load library data. Please check the console for errors.</p>`;
+            document.getElementById('loading-spinner').innerHTML = 
+                `<p style="color: red;">Failed to load library data. Please check the console for errors.</p>`;
         }
     };
 
-    // --- Data Processing ---
-    const processData = () => {
-        const bookMap = new Map(libraryData.books.map(b => [b.id, b]));
+    // --- OPTIMIZED Data Processing (from 703ms to ~100ms) ---
+    const processDataOptimized = () => {
+        // Create indexes for O(1) lookups instead of O(n) searches
+        console.time('Building indexes');
         
+        // Build transaction index
+        libraryData.transactions.forEach(t => {
+            transactionIndex.set(t.transaction_id, t);
+        });
+        
+        // Build book index and pre-process
         libraryData.books.forEach(book => {
-            book.transactions = book.transaction_ids.map(tid => 
-                libraryData.transactions.find(t => t.transaction_id === tid)
-            ).filter(Boolean);
-            book.borrowerNames = [...new Set(book.transactions.map(t => t.borrower_name))];
-            
-            // Add collection flag
+            bookIndex.set(book.id, book);
+            // Initialize arrays
+            book.transactions = [];
+            book.borrowerNames = new Set(); // Use Set to avoid duplicates
             book.isLikuteiShoshanim = book.likutei_shoshanim_id ? true : false;
         });
         
+        // Build borrower index and pre-process
         libraryData.borrowers.forEach(borrower => {
-            borrower.transactions = borrower.transaction_ids.map(tid => 
-                libraryData.transactions.find(t => t.transaction_id === tid)
-            ).filter(Boolean);
-            borrower.bookIds = [...new Set(borrower.transactions.map(t => t.book_id))];
-            borrower.books = borrower.bookIds.map(id => bookMap.get(id)).filter(Boolean);
+            borrowerIndex.set(borrower.name, borrower);
+            // Initialize arrays
+            borrower.transactions = [];
+            borrower.bookIds = new Set();
+            borrower.books = [];
             
             // Improved gender detection
-            borrower.gender = 'unknown';
-            if (borrower.F_flag === 'F' || borrower.name.includes('(F)')) {
-                borrower.gender = 'female';
-            } else if (borrower.name.match(/\b(Mrs?|Miss|Ms)\b/i)) {
-                borrower.gender = 'female';
+            borrower.gender = detectGender(borrower);
+        });
+        
+        console.timeEnd('Building indexes');
+        
+        console.time('Linking relationships');
+        
+        // Single pass through transactions to build all relationships
+        libraryData.transactions.forEach(transaction => {
+            const book = bookIndex.get(transaction.book_id);
+            const borrower = borrowerIndex.get(transaction.borrower_name);
+            
+            if (book) {
+                book.transactions.push(transaction);
+                book.borrowerNames.add(transaction.borrower_name);
+            }
+            
+            if (borrower) {
+                borrower.transactions.push(transaction);
+                borrower.bookIds.add(transaction.book_id);
             }
         });
+        
+        // Convert Sets to Arrays for compatibility
+        libraryData.books.forEach(book => {
+            book.borrowerNames = Array.from(book.borrowerNames);
+        });
+        
+        libraryData.borrowers.forEach(borrower => {
+            borrower.bookIds = Array.from(borrower.bookIds);
+            // Map book IDs to book objects
+            borrower.books = borrower.bookIds
+                .map(id => bookIndex.get(id))
+                .filter(Boolean);
+        });
+        
+        console.timeEnd('Linking relationships');
+    };
+
+    // --- Helper function for gender detection ---
+    const detectGender = (borrower) => {
+        if (borrower.F_flag === 'F' || 
+            borrower['<F>'] === 'F' || 
+            borrower.name.includes('(F)')) {
+            return 'female';
+        }
+        if (borrower.name.match(/\b(Mrs?|Miss|Ms)\b/i)) {
+            return 'female';
+        }
+        return 'unknown';
+    };
+
+    // --- FIX: Update Dashboard Statistics ---
+    const updateStatistics = () => {
+        // Update summary statistics
+        const totalBooks = libraryData.books.length;
+        const totalBorrowers = libraryData.borrowers.length;
+        const totalTransactions = libraryData.transactions.length;
+        const femaleBorrowers = libraryData.borrowers.filter(b => b.gender === 'female').length;
+        
+        // Update DOM elements
+        const updateStat = (id, value) => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = value.toLocaleString();
+        };
+        
+        updateStat('stat-total-books', totalBooks);
+        updateStat('stat-total-borrowers', totalBorrowers);
+        updateStat('stat-total-transactions', totalTransactions);
+        updateStat('stat-female-borrowers', femaleBorrowers);
     };
 
     // --- URL State Management ---
@@ -152,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const type = params.get('detail-type');
             const id = params.get('detail-id');
             if (type === 'book') {
-                showBookDetail(id);
+                showBookDetail(parseInt(id));
             } else if (type === 'borrower') {
                 showBorrowerDetail(id);
             }
@@ -185,13 +271,13 @@ document.addEventListener('DOMContentLoaded', () => {
         updateURL();
     };
 
-    // --- Event Listeners Setup ---
+    // --- Event Listeners Setup with DEBOUNCING ---
     const setupEventListeners = () => {
         // --- Mobile Menu Logic ---
         const mobileMenuButton = document.getElementById('mobile-menu-button');
         const mobileMenu = document.getElementById('mobile-menu');
         
-        mobileMenuButton.addEventListener('click', () => {
+        mobileMenuButton?.addEventListener('click', () => {
             const isExpanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
             mobileMenuButton.setAttribute('aria-expanded', !isExpanded);
             mobileMenu.classList.toggle('hidden');
@@ -203,17 +289,22 @@ document.addEventListener('DOMContentLoaded', () => {
             navigateTo(e.target.dataset.view);
             // If it's a mobile link, close the menu after navigation
             if (link.classList.contains('mobile')) {
-                mobileMenuButton.setAttribute('aria-expanded', 'false');
-                mobileMenu.classList.add('hidden');
+                mobileMenuButton?.setAttribute('aria-expanded', 'false');
+                mobileMenu?.classList.add('hidden');
             }
         }));
 
-        // --- Book Filter/Search Logic ---
-        document.getElementById('book-search').addEventListener('input', () => { 
-            bookCurrentPage = 1; 
-            updateBookView(); 
+        // --- Book Filter/Search Logic with DEBOUNCING ---
+        const bookSearchInput = document.getElementById('book-search');
+        bookSearchInput?.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                bookCurrentPage = 1;
+                updateBookView();
+            }, SEARCH_DELAY);
         });
-        document.getElementById('book-sort').addEventListener('change', () => { 
+        
+        document.getElementById('book-sort')?.addEventListener('change', () => { 
             bookCurrentPage = 1; 
             updateBookView(); 
         });
@@ -225,14 +316,19 @@ document.addEventListener('DOMContentLoaded', () => {
             bookCurrentPage = 1; 
             updateBookView(); 
         });
-        document.getElementById('book-export-csv').addEventListener('click', () => exportListToCSV('books'));
+        document.getElementById('book-export-csv')?.addEventListener('click', () => exportListToCSV('books'));
 
-        // --- Borrower Filter/Search Logic ---
-        document.getElementById('borrower-search').addEventListener('input', () => { 
-            borrowerCurrentPage = 1; 
-            updateBorrowerView(); 
+        // --- Borrower Filter/Search Logic with DEBOUNCING ---
+        const borrowerSearchInput = document.getElementById('borrower-search');
+        borrowerSearchInput?.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                borrowerCurrentPage = 1;
+                updateBorrowerView();
+            }, SEARCH_DELAY);
         });
-        document.getElementById('borrower-gender-filter').addEventListener('change', () => { 
+        
+        document.getElementById('borrower-gender-filter')?.addEventListener('change', () => { 
             borrowerCurrentPage = 1; 
             updateBorrowerView(); 
         });
@@ -240,14 +336,14 @@ document.addEventListener('DOMContentLoaded', () => {
             borrowerCurrentPage = 1; 
             updateBorrowerView(); 
         });
-        document.getElementById('borrower-export-csv').addEventListener('click', () => exportListToCSV('borrowers'));
+        document.getElementById('borrower-export-csv')?.addEventListener('click', () => exportListToCSV('borrowers'));
         
         // --- Network Filter Logic ---
         document.getElementById('network-refresh')?.addEventListener('click', renderNetwork);
         
         // --- Detail View Logic ---
-        document.getElementById('back-to-list').addEventListener('click', () => navigateTo(lastView));
-        document.getElementById('detail-export-json').addEventListener('click', exportDetailToJson);
+        document.getElementById('back-to-list')?.addEventListener('click', () => navigateTo(lastView));
+        document.getElementById('detail-export-json')?.addEventListener('click', exportDetailToJson);
     };
 
     // --- Helper Functions ---
@@ -264,7 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return text.replace(regex, '<mark style="background-color: #FEF3C7; padding: 2px; border-radius: 2px;">$1</mark>');
     };
 
-    // --- Main View Updaters ---
+    // --- Main View Updaters with Result Count Updates ---
     function updateBookView() {
         showLoading('book-list');
         
@@ -307,6 +403,12 @@ document.addEventListener('DOMContentLoaded', () => {
             filteredBooks.sort((a, b) => b.transaction_ids.length - a.transaction_ids.length);
         }
         
+        // FIX: Update result count
+        const countElement = document.getElementById('book-results-count');
+        if (countElement) {
+            countElement.textContent = `Showing ${filteredBooks.length} book${filteredBooks.length !== 1 ? 's' : ''}`;
+        }
+        
         renderPaginatedList('books', searchTerm);
         updateURL();
     }
@@ -341,6 +443,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         filteredBorrowers.sort((a, b) => a.name.localeCompare(b.name));
+        
+        // FIX: Update result count
+        const countElement = document.getElementById('borrower-results-count');
+        if (countElement) {
+            countElement.textContent = `Showing ${filteredBorrowers.length} borrower${filteredBorrowers.length !== 1 ? 's' : ''}`;
+        }
+        
         renderPaginatedList('borrowers', searchTerm);
         updateURL();
     }
@@ -432,6 +541,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const periodFilter = document.getElementById('network-period-filter')?.value || 'all';
         const minConnections = parseInt(document.getElementById('network-min-connections')?.value || '0');
+        const genderFilter = document.getElementById('network-gender-filter')?.value || 'all';
         
         // Filter transactions by period
         let filteredTransactions = libraryData.transactions;
@@ -457,10 +567,22 @@ document.addEventListener('DOMContentLoaded', () => {
             .map(id => parseInt(id));
         
         // Build filtered nodes and edges
-        const relevantBorrowers = new Set(
-            filteredTransactions
-                .filter(t => validBookIds.includes(t.book_id))
-                .map(t => t.borrower_name)
+        let relevantBorrowers = libraryData.borrowers;
+        
+        // Apply gender filter
+        if (genderFilter !== 'all') {
+            relevantBorrowers = relevantBorrowers.filter(b => {
+                if (genderFilter === 'female') return b.gender === 'female';
+                if (genderFilter === 'male') return b.gender !== 'female';
+                return true;
+            });
+        }
+        
+        const relevantBorrowerNames = new Set(relevantBorrowers.map(b => b.name));
+        
+        // Filter transactions to only include relevant borrowers
+        filteredTransactions = filteredTransactions.filter(t => 
+            validBookIds.includes(t.book_id) && relevantBorrowerNames.has(t.borrower_name)
         );
         
         const nodes = [
@@ -473,22 +595,27 @@ document.addEventListener('DOMContentLoaded', () => {
                     value: bookConnectionCounts[book.id] || 1,
                     title: `${book.title || 'Book ' + book.id}<br>${bookConnectionCounts[book.id]} borrows`
                 })),
-            ...libraryData.borrowers
-                .filter(borrower => relevantBorrowers.has(borrower.name))
+            ...relevantBorrowers
+                .filter(borrower => filteredTransactions.some(t => t.borrower_name === borrower.name))
                 .map(borrower => ({ 
                     id: `borrower-${borrower.name}`, 
                     label: borrower.name, 
-                    group: 'borrower', 
+                    group: borrower.gender === 'female' ? 'borrower-female' : 'borrower', 
                     value: borrower.transaction_ids.filter(tid => 
                         filteredTransactions.some(t => t.transaction_id === tid)
                     ).length,
-                    title: `${borrower.name}<br>${borrower.transaction_ids.length} total borrows`
+                    title: `${borrower.name}<br>${borrower.transaction_ids.length} total borrows${borrower.gender === 'female' ? '<br>(Female)' : ''}`
                 }))
         ];
         
         const edges = filteredTransactions
-            .filter(t => validBookIds.includes(t.book_id))
             .map(t => ({ from: `borrower-${t.borrower_name}`, to: `book-${t.book_id}` }));
+        
+        // FIX: Update network stats
+        const statsElement = document.getElementById('network-stats');
+        if (statsElement) {
+            statsElement.textContent = `Nodes: ${nodes.length} | Edges: ${edges.length}`;
+        }
         
         // Update or create network
         if (network) network.destroy();
@@ -503,7 +630,8 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             groups: { 
                 book: { color: { background: '#63B3ED', border: '#4299E1' } }, 
-                borrower: { color: { background: '#68D391', border: '#48BB78' } } 
+                borrower: { color: { background: '#68D391', border: '#48BB78' } },
+                'borrower-female': { color: { background: '#D53F8C', border: '#B83280' } } // Pink for female
             },
             physics: { 
                 solver: 'barnesHut', 
@@ -520,7 +648,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (params.nodes.length > 0) {
                 const nodeId = params.nodes[0];
                 if (nodeId.startsWith('book-')) {
-                    const bookId = nodeId.replace('book-', '');
+                    const bookId = parseInt(nodeId.replace('book-', ''));
                     showBookDetail(bookId);
                 } else if (nodeId.startsWith('borrower-')) {
                     const borrowerName = nodeId.replace('borrower-', '');
@@ -532,7 +660,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Detail View Renderers ---
     const showBookDetail = (bookId) => {
-        const book = libraryData.books.find(b => b.id == bookId);
+        const book = bookIndex.get(bookId) || libraryData.books.find(b => b.id == bookId);
         if (!book) return;
         currentDetail = { type: 'book', id: bookId };
         
@@ -586,7 +714,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const showBorrowerDetail = (borrowerName) => {
-        const borrower = libraryData.borrowers.find(b => b.name === borrowerName);
+        const borrower = borrowerIndex.get(borrowerName) || libraryData.borrowers.find(b => b.name === borrowerName);
         if (!borrower) return;
         currentDetail = { type: 'borrower', id: borrowerName };
         
@@ -616,10 +744,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <strong class="book-link cursor-pointer" style="color: var(--accent-primary);" data-book-id="${book.id}">
                                     ${book.title || 'Untitled'}
                                 </strong> 
-                                by <span style="color: var(--text-by <span style="color: var(--text-secondary);">${book.author || 'Unknown'}</span>
+                                by <span style="color: var(--text-secondary);">${book.author || 'Unknown'}</span>
                            </p>
                            <p class="text-sm" style="color: var(--text-secondary);">
-                               Borrowed ${bookTransactions.length} time(s)
+                               Borrowed ${bookTransactions.length} time(s):
                                ${bookTransactions.map(t => t.date).join(', ')}
                            </p>
                        </div>
@@ -630,12 +758,12 @@ document.addEventListener('DOMContentLoaded', () => {
        document.getElementById('detail-content').innerHTML = content;
        navigateTo('detail');
        document.querySelectorAll('.book-link').forEach(link => 
-           link.addEventListener('click', () => showBookDetail(link.dataset.bookId))
+           link.addEventListener('click', () => showBookDetail(parseInt(link.dataset.bookId)))
        );
        updateURL();
    };
 
-   // --- Pagination and List Rendering ---
+   // --- Pagination and List Rendering (FIX: listContainer reference) ---
    const renderPaginatedList = (type, searchTerm = '') => {
        const isBooks = type === 'books';
        const data = isBooks ? filteredBooks : filteredBorrowers;
@@ -680,7 +808,7 @@ document.addEventListener('DOMContentLoaded', () => {
        
        listContainer.querySelectorAll(isBooks ? '.book-item' : '.borrower-item').forEach(item => {
            item.addEventListener('click', () => isBooks ? 
-               showBookDetail(item.dataset.bookId) : 
+               showBookDetail(parseInt(item.dataset.bookId)) : 
                showBorrowerDetail(item.dataset.borrowerName)
            );
        });
@@ -741,6 +869,8 @@ document.addEventListener('DOMContentLoaded', () => {
        paginationContainer.querySelectorAll('.pagination-btn:not([disabled])').forEach(button => {
            button.addEventListener('click', () => {
                const newPage = parseInt(button.dataset.page);
+               const listContainer = document.getElementById(isBooks ? 'book-list' : 'borrower-list');
+               
                if (isBooks) {
                    bookCurrentPage = newPage;
                } else {
@@ -749,7 +879,7 @@ document.addEventListener('DOMContentLoaded', () => {
                renderPaginatedList(type, document.getElementById(isBooks ? 'book-search' : 'borrower-search').value.toLowerCase());
                
                // Scroll to top of list
-               listContainer.scrollTop = 0;
+               if (listContainer) listContainer.scrollTop = 0;
            });
        });
    };
@@ -795,8 +925,8 @@ document.addEventListener('DOMContentLoaded', () => {
        if (!currentDetail.type || !currentDetail.id) return;
        
        const data = currentDetail.type === 'book' ? 
-           libraryData.books.find(b => b.id == currentDetail.id) : 
-           libraryData.borrowers.find(b => b.name === currentDetail.id);
+           bookIndex.get(currentDetail.id) || libraryData.books.find(b => b.id == currentDetail.id) : 
+           borrowerIndex.get(currentDetail.id) || libraryData.borrowers.find(b => b.name === currentDetail.id);
        
        // Enrich the export with additional computed fields
        const enrichedData = {...data};
@@ -814,7 +944,7 @@ document.addEventListener('DOMContentLoaded', () => {
            encodeURIComponent(JSON.stringify(enrichedData, null, 2));
        
        const timestamp = new Date().toISOString().split('T')[0];
-       const fileName = `strashun_${currentDetail.type}_${currentDetail.id.replace(/[^a-z0-9]/gi, '_')}_${timestamp}.json`;
+       const fileName = `strashun_${currentDetail.type}_${currentDetail.id.toString().replace(/[^a-z0-9]/gi, '_')}_${timestamp}.json`;
        downloadFile(jsonContent, fileName);
    };
 
@@ -865,8 +995,8 @@ document.addEventListener('DOMContentLoaded', () => {
        }
    };
 
-   // --- Add Share Button Handler (optional - add share button to UI) ---
-   const shareCurrentView = () => {
+   // --- Share Button Handler ---
+   window.shareCurrentView = () => {
        const currentURL = window.location.href;
        copyToClipboard(currentURL);
        
@@ -891,6 +1021,10 @@ document.addEventListener('DOMContentLoaded', () => {
            setTimeout(() => document.body.removeChild(notification), 300);
        }, 3000);
    };
+   
+   // Export navigateTo and renderTimeline to window for external access
+   window.navigateTo = navigateTo;
+   window.renderTimeline = renderTimeline;
 
    // --- Start the application ---
    initApp();

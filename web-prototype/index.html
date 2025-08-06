@@ -3,45 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Strashun Library Digital Interface</title>
+    <meta name="description" content="Explore the historical lending records of the Strashun Library of Vilna (1902-1940), revealing the reading patterns and intellectual life of the pre-Holocaust Jewish community.">
+    <meta name="keywords" content="Strashun Library, Vilna, Jewish history, library records, Holocaust, genealogy">
+    <meta name="author" content="Strashun Library Digital Interface Project">
     
-    <!-- JS Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
-
-    <!-- Academic Modern Stylesheet -->
+    <title>Strashun Library Digital Interface - Historical Records Explorer</title>
+    
+    <!-- Preconnect to CDNs for faster loading -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Libraries CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/vis-network/styles/vis-network.min.css">
+    
+    <!-- Application Stylesheet -->
     <link rel="stylesheet" href="style.css">
-
-    <!-- Tailwind CSS (for utility classes) -->
+    
+    <!-- Tailwind CSS (Development - Replace with compiled version for production) -->
     <script src="https://cdn.tailwindcss.com"></script>
-
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234A5568' stroke-width='1.5'%3E%3Cpath d='M12 6.253v11.494m-5.25-8.494h10.5M4.75 12h14.5m-14.5 4.247h14.5M4.75 7.753h14.5'/%3E%3C/svg%3E">
 </head>
 <body>
+    <!-- Skip to main content for accessibility -->
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-white p-2 rounded">
+        Skip to main content
+    </a>
 
     <!-- Header -->
-    <header class="sticky top-0 z-20">
+    <header class="sticky top-0 z-20" role="banner">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
+                <!-- Logo and Title -->
                 <div class="flex items-center">
-                    <svg class="h-8 w-8" style="color: var(--accent-primary);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <svg class="h-8 w-8" style="color: var(--accent-primary);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v11.494m-5.25-8.494h10.5M4.75 12h14.5m-14.5 4.247h14.5M4.75 7.753h14.5" />
                     </svg>
-                    <h1 class="ml-3 text-3xl">Strashun Library</h1>
+                    <h1 class="ml-3 text-3xl font-bold">Strashun Library</h1>
                 </div>
 
                 <!-- Desktop Navigation -->
-                <nav class="hidden md:flex items-center space-x-2" role="navigation" aria-label="Main">
-                    <a href="#" class="nav-link active px-4 py-2 text-sm font-medium" data-view="dashboard">Dashboard</a>
-                    <a href="#" class="nav-link px-4 py-2 text-sm font-medium" data-view="books">Books</a>
-                    <a href="#" class="nav-link px-4 py-2 text-sm font-medium" data-view="borrowers">Borrowers</a>
-                    <a href="#" class="nav-link px-4 py-2 text-sm font-medium" data-view="network">Network</a>
-                    <a href="#" class="nav-link px-4 py-2 text-sm font-medium" data-view="timeline">Timeline</a>
+                <nav class="hidden md:flex items-center space-x-2" role="navigation" aria-label="Main navigation">
+                    <a href="#dashboard" class="nav-link active px-4 py-2 text-sm font-medium rounded-md transition-colors" data-view="dashboard">Dashboard</a>
+                    <a href="#books" class="nav-link px-4 py-2 text-sm font-medium rounded-md transition-colors" data-view="books">Books</a>
+                    <a href="#borrowers" class="nav-link px-4 py-2 text-sm font-medium rounded-md transition-colors" data-view="borrowers">Borrowers</a>
+                    <a href="#network" class="nav-link px-4 py-2 text-sm font-medium rounded-md transition-colors" data-view="network">Network</a>
+                    <a href="#timeline" class="nav-link px-4 py-2 text-sm font-medium rounded-md transition-colors" data-view="timeline">Timeline</a>
                 </nav>
 
-                <!-- Share Button (Desktop) -->
-                <div class="hidden md:flex items-center ml-4">
-                    <button id="share-button" class="p-2 rounded-md hover:bg-gray-100" title="Share current view">
+                <!-- Desktop Actions -->
+                <div class="hidden md:flex items-center space-x-2">
+                    <button id="share-button" class="p-2 rounded-md hover:bg-gray-100 transition-colors" title="Share current view" aria-label="Share current view">
                         <svg class="h-5 w-5" style="color: var(--accent-primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m9.032 4.026a3 3 0 10-4.732 2.684m4.732-2.684a3 3 0 00-4.732-2.684M6.316 10.658a3 3 0 10-4.732-2.684"></path>
                         </svg>
@@ -50,7 +67,8 @@
 
                 <!-- Mobile Menu Button -->
                 <div class="md:hidden">
-                    <button id="mobile-menu-button" class="p-2 rounded-md" style="color: var(--accent-primary);" aria-label="Open main menu" aria-expanded="false" aria-controls="mobile-menu">
+                    <button id="mobile-menu-button" class="p-2 rounded-md transition-colors" style="color: var(--accent-primary);" 
+                            aria-label="Open main menu" aria-expanded="false" aria-controls="mobile-menu">
                         <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
                         </svg>
@@ -60,46 +78,49 @@
         </div>
 
         <!-- Mobile Navigation Menu -->
-        <div id="mobile-menu" class="hidden md:hidden" role="navigation">
+        <nav id="mobile-menu" class="hidden md:hidden" role="navigation" aria-label="Mobile navigation">
             <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3" style="background-color: var(--card-bg-color); box-shadow: var(--card-shadow);">
-                <a href="#" class="nav-link mobile active block px-3 py-2 rounded-md text-base font-medium" data-view="dashboard">Dashboard</a>
-                <a href="#" class="nav-link mobile block px-3 py-2 rounded-md text-base font-medium" data-view="books">Books</a>
-                <a href="#" class="nav-link mobile block px-3 py-2 rounded-md text-base font-medium" data-view="borrowers">Borrowers</a>
-                <a href="#" class="nav-link mobile block px-3 py-2 rounded-md text-base font-medium" data-view="network">Network</a>
-                <a href="#" class="nav-link mobile block px-3 py-2 rounded-md text-base font-medium" data-view="timeline">Timeline</a>
-                <button id="mobile-share-button" class="w-full text-left px-3 py-2 rounded-md text-base font-medium" style="color: var(--accent-primary);">Share View</button>
+                <a href="#dashboard" class="nav-link mobile active block px-3 py-2 rounded-md text-base font-medium" data-view="dashboard">Dashboard</a>
+                <a href="#books" class="nav-link mobile block px-3 py-2 rounded-md text-base font-medium" data-view="books">Books</a>
+                <a href="#borrowers" class="nav-link mobile block px-3 py-2 rounded-md text-base font-medium" data-view="borrowers">Borrowers</a>
+                <a href="#network" class="nav-link mobile block px-3 py-2 rounded-md text-base font-medium" data-view="network">Network</a>
+                <a href="#timeline" class="nav-link mobile block px-3 py-2 rounded-md text-base font-medium" data-view="timeline">Timeline</a>
+                <button id="mobile-share-button" class="w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors" style="color: var(--accent-primary);">
+                    Share View
+                </button>
             </div>
-        </div>
+        </nav>
     </header>
 
     <!-- Main Content -->
-    <main class="container mx-auto p-4 sm:p-6 lg:p-8" role="main">
+    <main id="main-content" class="container mx-auto p-4 sm:p-6 lg:p-8" role="main">
         
         <!-- Loading Spinner -->
-        <div id="loading-spinner" class="flex justify-center items-center h-64">
+        <div id="loading-spinner" class="flex justify-center items-center h-64" aria-live="polite" aria-busy="true">
             <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2" style="border-color: var(--accent-primary);"></div>
+            <span class="sr-only">Loading library data...</span>
         </div>
 
         <!-- Dashboard View -->
-        <div id="dashboard-view" class="view active">
-            <h2 class="text-3xl mb-8">Library Insights</h2>
+        <section id="dashboard-view" class="view active" aria-labelledby="dashboard-heading">
+            <h2 id="dashboard-heading" class="text-3xl mb-8 font-bold">Library Insights</h2>
             
             <!-- Statistics Summary Cards -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                 <div class="card p-4 text-center">
-                    <div class="text-2xl font-bold" style="color: var(--accent-primary);" id="stat-total-books">-</div>
+                    <div class="text-2xl font-bold" style="color: var(--accent-primary);" id="stat-total-books" aria-label="Total books">-</div>
                     <div class="text-sm" style="color: var(--text-secondary);">Total Books</div>
                 </div>
                 <div class="card p-4 text-center">
-                    <div class="text-2xl font-bold" style="color: var(--accent-green);" id="stat-total-borrowers">-</div>
+                    <div class="text-2xl font-bold" style="color: var(--accent-green);" id="stat-total-borrowers" aria-label="Total borrowers">-</div>
                     <div class="text-sm" style="color: var(--text-secondary);">Total Borrowers</div>
                 </div>
                 <div class="card p-4 text-center">
-                    <div class="text-2xl font-bold" style="color: #D69E2E;" id="stat-total-transactions">-</div>
+                    <div class="text-2xl font-bold" style="color: #D69E2E;" id="stat-total-transactions" aria-label="Total transactions">-</div>
                     <div class="text-sm" style="color: var(--text-secondary);">Total Transactions</div>
                 </div>
                 <div class="card p-4 text-center">
-                    <div class="text-2xl font-bold" style="color: #D53F8C;" id="stat-female-borrowers">-</div>
+                    <div class="text-2xl font-bold" style="color: #D53F8C;" id="stat-female-borrowers" aria-label="Female borrowers">-</div>
                     <div class="text-sm" style="color: var(--text-secondary);">Female Borrowers</div>
                 </div>
             </div>
@@ -107,306 +128,346 @@
             <!-- Charts Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div class="card">
-                    <h3 class="text-xl mb-4">Top 20 Most Borrowed Books</h3>
-                    <div class="chart-container">
-                        <canvas id="popular-books-chart" class="cursor-pointer"></canvas>
+                    <h3 class="text-xl mb-4 font-semibold">Top 20 Most Borrowed Books</h3>
+                    <div class="chart-container" aria-label="Bar chart showing most borrowed books">
+                        <canvas id="popular-books-chart" class="cursor-pointer" role="img"></canvas>
                     </div>
                 </div>
                 <div class="card">
-                    <h3 class="text-xl mb-4">Top 20 Most Active Readers</h3>
-                    <div class="chart-container">
-                        <canvas id="active-readers-chart" class="cursor-pointer"></canvas>
+                    <h3 class="text-xl mb-4 font-semibold">Top 20 Most Active Readers</h3>
+                    <div class="chart-container" aria-label="Bar chart showing most active readers">
+                        <canvas id="active-readers-chart" class="cursor-pointer" role="img"></canvas>
                     </div>
                 </div>
                 <div class="card">
-                    <h3 class="text-xl mb-4">Borrowing by Time Period</h3>
-                    <div class="chart-container">
-                        <canvas id="period-chart"></canvas>
+                    <h3 class="text-xl mb-4 font-semibold">Borrowing by Time Period</h3>
+                    <div class="chart-container" aria-label="Pie chart showing borrowing distribution by period">
+                        <canvas id="period-chart" role="img"></canvas>
                     </div>
                 </div>
                 <div class="card">
-                    <h3 class="text-xl mb-4">Gender Distribution of Borrowers</h3>
-                    <div class="chart-container">
-                        <canvas id="gender-chart"></canvas>
+                    <h3 class="text-xl mb-4 font-semibold">Gender Distribution of Borrowers</h3>
+                    <div class="chart-container" aria-label="Doughnut chart showing gender distribution">
+                        <canvas id="gender-chart" role="img"></canvas>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- Books View -->
-        <div id="books-view" class="view">
+        <section id="books-view" class="view" aria-labelledby="books-heading">
             <div class="card">
-                <h2 class="text-3xl mb-6">Book Catalog</h2>
+                <h2 id="books-heading" class="text-3xl mb-6 font-bold">Book Catalog</h2>
                 
                 <!-- Filters and Search -->
                 <div class="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-center">
-                    <input type="text" id="book-search" placeholder="Search by title or author..." class="form-input w-full lg:col-span-2">
-                    <select id="book-sort" class="form-select w-full">
+                    <input type="text" id="book-search" placeholder="Search by title or author..." 
+                           class="form-input w-full lg:col-span-2" aria-label="Search books">
+                    <select id="book-sort" class="form-select w-full" aria-label="Sort books">
                         <option value="relevance">Sort by Relevance</option>
                         <option value="alpha">Sort Alphabetically</option>
                         <option value="popularity">Sort by Popularity</option>
                     </select>
-                    <select id="book-period-filter" class="form-select w-full">
+                    <select id="book-period-filter" class="form-select w-full" aria-label="Filter by period">
                         <option value="all">All Periods</option>
                         <option value="1902">1902</option>
                         <option value="1903-1904">1903-1904</option>
                         <option value="1934">1934</option>
                         <option value="1940">1940</option>
                     </select>
-                    <select id="book-collection-filter" class="form-select w-full">
+                    <select id="book-collection-filter" class="form-select w-full" aria-label="Filter by collection">
                         <option value="all">All Collections</option>
                         <option value="general">General Collection</option>
                         <option value="likutei">Likutei Shoshanim</option>
                     </select>
-                    <button id="book-export-csv" class="btn btn-secondary">Export CSV</button>
+                    <button id="book-export-csv" class="btn btn-secondary" aria-label="Export books to CSV">Export CSV</button>
                 </div>
                 
                 <!-- Results Count -->
                 <div class="mb-4 text-sm" style="color: var(--text-secondary);">
-                    <span id="book-results-count">Showing 0 books</span>
+                    <span id="book-results-count" aria-live="polite">Showing 0 books</span>
                 </div>
                 
                 <!-- Book List -->
-                <div id="book-list" class="list-container pr-2"></div>
+                <div id="book-list" class="list-container pr-2" role="list" aria-label="Book list"></div>
                 
                 <!-- Pagination -->
-                <div id="book-pagination" class="flex justify-center items-center mt-4 space-x-2"></div>
+                <nav id="book-pagination" class="flex justify-center items-center mt-4 space-x-2" aria-label="Book pagination"></nav>
             </div>
-        </div>
+        </section>
 
         <!-- Borrowers View -->
-        <div id="borrowers-view" class="view">
+        <section id="borrowers-view" class="view" aria-labelledby="borrowers-heading">
             <div class="card">
-                <h2 class="text-3xl mb-6">Borrower List</h2>
+                <h2 id="borrowers-heading" class="text-3xl mb-6 font-bold">Borrower List</h2>
                 
                 <!-- Filters and Search -->
                 <div class="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-center">
-                    <input type="text" id="borrower-search" placeholder="Search by name..." class="form-input w-full lg:col-span-2">
-                    <select id="borrower-gender-filter" class="form-select w-full">
+                    <input type="text" id="borrower-search" placeholder="Search by name..." 
+                           class="form-input w-full lg:col-span-2" aria-label="Search borrowers">
+                    <select id="borrower-gender-filter" class="form-select w-full" aria-label="Filter by gender">
                         <option value="all">All Genders</option>
                         <option value="F">Female</option>
                         <option value="M">Male/Unknown</option>
                     </select>
-                    <select id="borrower-activity-filter" class="form-select w-full">
+                    <select id="borrower-activity-filter" class="form-select w-full" aria-label="Filter by activity level">
                         <option value="all">All Activity Levels</option>
                         <option value="1-5">1-5 books</option>
                         <option value="6-20">6-20 books</option>
                         <option value="21+">21+ books</option>
                     </select>
-                    <button id="borrower-export-csv" class="btn btn-secondary">Export CSV</button>
+                    <button id="borrower-export-csv" class="btn btn-secondary" aria-label="Export borrowers to CSV">Export CSV</button>
                 </div>
                 
                 <!-- Results Count -->
                 <div class="mb-4 text-sm" style="color: var(--text-secondary);">
-                    <span id="borrower-results-count">Showing 0 borrowers</span>
+                    <span id="borrower-results-count" aria-live="polite">Showing 0 borrowers</span>
                 </div>
                 
                 <!-- Borrower List -->
-                <div id="borrower-list" class="list-container pr-2"></div>
+                <div id="borrower-list" class="list-container pr-2" role="list" aria-label="Borrower list"></div>
                 
                 <!-- Pagination -->
-                <div id="borrower-pagination" class="flex justify-center items-center mt-4 space-x-2"></div>
+                <nav id="borrower-pagination" class="flex justify-center items-center mt-4 space-x-2" aria-label="Borrower pagination"></nav>
             </div>
-        </div>
+        </section>
         
         <!-- Network View -->
-        <div id="network-view" class="view">
+        <section id="network-view" class="view" aria-labelledby="network-heading">
             <div class="card">
-                <h2 class="text-3xl mb-6">Borrower-Book Network</h2>
+                <h2 id="network-heading" class="text-3xl mb-6 font-bold">Borrower-Book Network</h2>
                 
                 <!-- Network Filters -->
                 <div class="mb-4 grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <select id="network-period-filter" class="form-select">
+                    <select id="network-period-filter" class="form-select" aria-label="Filter network by period">
                         <option value="all">All Periods</option>
                         <option value="1902">1902</option>
                         <option value="1903-1904">1903-1904</option>
                         <option value="1934">1934</option>
                         <option value="1940">1940</option>
                     </select>
-                    <select id="network-min-connections" class="form-select">
+                    <select id="network-min-connections" class="form-select" aria-label="Minimum connections filter">
                         <option value="0">All Books</option>
                         <option value="2">2+ Borrowers</option>
                         <option value="5">5+ Borrowers</option>
                         <option value="10">10+ Borrowers</option>
                     </select>
-                    <select id="network-gender-filter" class="form-select">
+                    <select id="network-gender-filter" class="form-select" aria-label="Filter network by gender">
                         <option value="all">All Genders</option>
                         <option value="female">Female Borrowers</option>
                         <option value="male">Male/Unknown</option>
                     </select>
-                    <button id="network-refresh" class="btn btn-primary">Apply Filters</button>
+                    <button id="network-refresh" class="btn btn-primary" aria-label="Apply network filters">Apply Filters</button>
                 </div>
                 
                 <!-- Network Stats -->
                 <div class="mb-4 text-sm" style="color: var(--text-secondary);">
-                    <span id="network-stats">Nodes: 0 | Edges: 0</span>
+                    <span id="network-stats" aria-live="polite">Nodes: 0 | Edges: 0</span>
                 </div>
                 
                 <!-- Network Graph Container -->
-                <div id="network-graph" class="w-full border rounded-lg" style="border-color: #E2E8F0; height: 600px;"></div>
+                <div id="network-graph" class="w-full border rounded-lg" style="border-color: #E2E8F0; height: 600px;" 
+                     role="application" aria-label="Interactive network visualization"></div>
                 
                 <!-- Network Legend -->
-                <div class="mt-4 flex items-center justify-center space-x-6 text-sm">
+                <div class="mt-4 flex items-center justify-center space-x-6 text-sm" aria-label="Network legend">
                     <div class="flex items-center">
-                        <div class="w-4 h-4 rounded-full mr-2" style="background-color: #63B3ED;"></div>
+                        <div class="w-4 h-4 rounded-full mr-2" style="background-color: #63B3ED;" aria-hidden="true"></div>
                         <span>Books</span>
                     </div>
                     <div class="flex items-center">
-                        <div class="w-4 h-4 rounded-full mr-2" style="background-color: #68D391;"></div>
+                        <div class="w-4 h-4 rounded-full mr-2" style="background-color: #68D391;" aria-hidden="true"></div>
                         <span>Borrowers</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 rounded-full mr-2" style="background-color: #D53F8C;" aria-hidden="true"></div>
+                        <span>Female Borrowers</span>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- Timeline View -->
-        <div id="timeline-view" class="view">
+        <section id="timeline-view" class="view" aria-labelledby="timeline-heading">
             <div class="card">
-                <h2 class="text-3xl mb-6">Borrowing Trends Over Time</h2>
+                <h2 id="timeline-heading" class="text-3xl mb-6 font-bold">Borrowing Trends Over Time</h2>
                 
                 <!-- Timeline Controls -->
                 <div class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <select id="timeline-granularity" class="form-select">
+                    <select id="timeline-granularity" class="form-select" aria-label="Timeline granularity">
                         <option value="year">By Year</option>
                         <option value="period">By Period</option>
                     </select>
-                    <select id="timeline-metric" class="form-select">
+                    <select id="timeline-metric" class="form-select" aria-label="Timeline metric">
                         <option value="transactions">Total Transactions</option>
                         <option value="unique-books">Unique Books</option>
                         <option value="unique-borrowers">Unique Borrowers</option>
                     </select>
-                    <button id="timeline-refresh" class="btn btn-primary">Update Chart</button>
+                    <button id="timeline-refresh" class="btn btn-primary" aria-label="Update timeline chart">Update Chart</button>
                 </div>
                 
                 <!-- Timeline Chart -->
                 <div class="chart-container" style="height: 400px;">
-                    <canvas id="timeline-chart" class="w-full"></canvas>
+                    <canvas id="timeline-chart" class="w-full" role="img" aria-label="Timeline chart"></canvas>
                 </div>
                 
                 <!-- Historical Context -->
                 <div class="mt-6 p-4 rounded-lg" style="background-color: #F7FAFC;">
                     <h4 class="font-semibold mb-2">Historical Context</h4>
                     <div class="text-sm" style="color: var(--text-secondary);">
-                        <p class="mb-2"><strong>1902:</strong> Early period of the library's operation</p>
-                        <p class="mb-2"><strong>1903-1904:</strong> Expansion period before WWI</p>
-                        <p class="mb-2"><strong>1934:</strong> Interwar period, cultural flourishing</p>
-                        <p><strong>1940:</strong> Final records before the Holocaust</p>
+                        <p class="mb-2"><strong>1902:</strong> Early period of the library's operation under Mattityahu Strashun's vision</p>
+                        <p class="mb-2"><strong>1903-1904:</strong> Expansion period before World War I, growing collection and readership</p>
+                        <p class="mb-2"><strong>1934:</strong> Interwar period, cultural flourishing in Jewish Vilna</p>
+                        <p><strong>1940:</strong> Final records before the Holocaust, last glimpse of the community</p>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- Detail View -->
-        <div id="detail-view" class="view">
+        <section id="detail-view" class="view" aria-labelledby="detail-heading">
             <div class="card">
                 <div class="flex justify-between items-center mb-6">
-                    <button id="back-to-list" class="btn btn-primary">← Back to List</button>
+                    <button id="back-to-list" class="btn btn-primary" aria-label="Back to list">← Back to List</button>
                     <div class="space-x-2">
-                        <button id="detail-share" class="btn btn-secondary">Share</button>
-                        <button id="detail-export-json" class="btn btn-secondary">Export JSON</button>
+                        <button id="detail-share" class="btn btn-secondary" aria-label="Share this item">Share</button>
+                        <button id="detail-export-json" class="btn btn-secondary" aria-label="Export as JSON">Export JSON</button>
                     </div>
                 </div>
-                <div id="detail-content"></div>
+                <div id="detail-content" role="article"></div>
                 
                 <!-- Related Items Section -->
-                <div id="related-items" class="mt-8 pt-6 border-t" style="border-color: #E2E8F0;">
-                    <h3 class="text-xl mb-4">Related Items</h3>
+                <aside id="related-items" class="mt-8 pt-6 border-t" style="border-color: #E2E8F0;">
+                    <h3 class="text-xl mb-4 font-semibold">Related Items</h3>
                     <div id="related-content" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-                </div>
+                </aside>
             </div>
-        </div>
+        </section>
 
         <!-- About View (Hidden by default, accessible via URL) -->
-        <div id="about-view" class="view">
+        <section id="about-view" class="view" aria-labelledby="about-heading">
             <div class="card">
-                <h2 class="text-3xl mb-6">About the Strashun Library Digital Interface</h2>
+                <h2 id="about-heading" class="text-3xl mb-6 font-bold">About the Strashun Library Digital Interface</h2>
                 
                 <div class="prose max-w-none">
                     <p class="mb-4">
                         The Strashun Library Digital Interface provides access to the historical lending records 
-                        of the Strashun Library of Vilna, one of the most important Jewish libraries in pre-Holocaust Europe.
+                        of the Strashun Library of Vilna, one of the most important Jewish libraries in pre-Holocaust 
+                        Eastern Europe. Founded by Mattityahu Strashun in the 19th century, the library served as a 
+                        vital center of Jewish learning and culture.
                     </p>
                     
-                    <h3 class="text-xl mt-6 mb-3">The Collection</h3>
+                    <h3 class="text-xl mt-6 mb-3 font-semibold">The Collection</h3>
                     <p class="mb-4">
-                        This digital archive contains over 5,000 borrowing transactions spanning four distinct periods 
-                        (1902, 1903-1904, 1934, and 1940), documenting the reading habits and intellectual life of the 
-                        Jewish community in Vilna.
+                        This digital archive contains <strong>4,942 borrowing transactions</strong> spanning four distinct 
+                        periods (1902, 1903-1904, 1934, and 1940), documenting the reading habits and intellectual life 
+                        of <strong>1,414 individual borrowers</strong> who accessed <strong>1,603 unique books</strong> 
+                        from the library's collection.
                     </p>
                     
-                    <h3 class="text-xl mt-6 mb-3">Using the Interface</h3>
+                    <h3 class="text-xl mt-6 mb-3 font-semibold">Using the Interface</h3>
                     <ul class="list-disc pl-6 mb-4">
                         <li>Search for specific books or borrowers using the search bars</li>
-                        <li>Apply filters to focus on specific time periods or demographics</li>
-                        <li>Explore the network visualization to discover connections</li>
-                        <li>Export data for your own research and analysis</li>
-                        <li>Share specific views using the share button</li>
+                        <li>Apply filters to focus on specific time periods, genders, or collections</li>
+                        <li>Explore the network visualization to discover connections between readers and books</li>
+                        <li>View detailed borrowing histories for individual books and borrowers</li>
+                        <li>Export data in CSV or JSON format for your own research and analysis</li>
+                        <li>Share specific views using the share button to collaborate with others</li>
                     </ul>
                     
-                    <h3 class="text-xl mt-6 mb-3">Data Sources</h3>
+                    <h3 class="text-xl mt-6 mb-3 font-semibold">Data Sources</h3>
                     <p class="mb-4">
-                        The data has been carefully transcribed from original ledgers and enriched with metadata 
-                        from the National Library of Israel (NLI) and YIVO Institute for Jewish Research.
+                        The data has been carefully transcribed from original library ledgers preserved in the 
+                        YIVO Archives. Book metadata has been enriched with information from the National Library 
+                        of Israel (NLI) catalog, providing additional details about authors, publishers, and 
+                        publication dates where available.
                     </p>
                     
-                    <h3 class="text-xl mt-6 mb-3">Credits</h3>
+                    <h3 class="text-xl mt-6 mb-3 font-semibold">Historical Significance</h3>
+                    <p class="mb-4">
+                        These records offer a unique window into Jewish intellectual life in Vilna, known as the 
+                        "Jerusalem of Lithuania." The borrowing patterns reveal the diverse interests of the 
+                        community, from religious texts to secular literature, from Hebrew classics to Yiddish 
+                        novels, reflecting the cultural dynamism of Eastern European Jewry before the Holocaust.
+                    </p>
+                    
+                    <h3 class="text-xl mt-6 mb-3 font-semibold">Credits & Acknowledgments</h3>
                     <p class="mb-4">
                         This project is part of the Edward Blank YIVO Vilna Online Collections Project, 
-                        developed in collaboration with the Fortunoff Video Archive for Holocaust Testimonies at Yale University.
+                        developed in collaboration with the Fortunoff Video Archive for Holocaust Testimonies 
+                        at Yale University. We gratefully acknowledge the support of the National Library of 
+                        Israel for providing catalog metadata and the dedicated volunteers who transcribed 
+                        the original ledgers.
                     </p>
+                    
+                    <div class="mt-8 p-4 rounded-lg bg-gray-50">
+                        <p class="text-sm text-gray-600">
+                            <strong>Technical Note:</strong> This interface is optimized for modern browsers and 
+                            works best on desktop computers. Mobile devices are supported with responsive design. 
+                            For the best experience with the network visualization, we recommend using a device 
+                            with a larger screen.
+                        </p>
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
     </main>
     
     <!-- Footer -->
-    <footer class="text-center py-4 mt-auto" style="color: var(--text-secondary);" role="contentinfo">
-        <p>
-            Strashun Library Digital Interface Project | 
+    <footer class="text-center py-6 mt-auto border-t" style="color: var(--text-secondary); border-color: #E2E8F0;" role="contentinfo">
+        <p class="mb-2">
+            Strashun Library Digital Interface | 
             <a href="#about" id="about-link" class="hover:underline" style="color: var(--accent-primary);">About</a> | 
-            <a href="https://github.com/yourusername/strashun-library" target="_blank" class="hover:underline" style="color: var(--accent-primary);">GitHub</a> |
-            Data courtesy of the project contributors
+            <a href="https://github.com/yourusername/strashun-library" target="_blank" rel="noopener noreferrer" 
+               class="hover:underline" style="color: var(--accent-primary);">GitHub</a> |
+            <a href="https://www.yivo.org" target="_blank" rel="noopener noreferrer" 
+               class="hover:underline" style="color: var(--accent-primary);">YIVO Institute</a>
+        </p>
+        <p class="text-xs">
+            © 2025 Strashun Library Digital Interface Project. Data courtesy of YIVO Archives and National Library of Israel.
         </p>
     </footer>
 
-    <!-- Main Application Logic -->
-    <script src="main.js"></script>
+    <!-- JavaScript Libraries (Order matters!) -->
+    <!-- Chart.js for data visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     
-    <!-- Additional Event Handlers -->
-    <script>
-        // Share button handlers
-        document.getElementById('share-button')?.addEventListener('click', () => {
-            if (window.shareCurrentView) window.shareCurrentView();
-        });
+    <!-- Vis.js Network for graph visualization -->
+    <script type="text/javascript" src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+    
+    <!-- Fuse.js for fuzzy search (optional enhancement) -->
+    <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+
+    <!-- Application Scripts (load order is critical) -->
+    <script src="js/app-core.js"></script>
+    <script src="js/app-views.js"></script>
+    <script src="js/app-visualizations.js"></script>
+    
+    <!-- Performance Testing (remove in production) -->
+    <!-- <script src="test.js"></script> -->
+    
+    <!-- CSS Animations for Notifications -->
+    <style>
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
         
-        document.getElementById('mobile-share-button')?.addEventListener('click', () => {
-            if (window.shareCurrentView) window.shareCurrentView();
-            // Close mobile menu
-            document.getElementById('mobile-menu').classList.add('hidden');
-        });
-        
-        document.getElementById('detail-share')?.addEventListener('click', () => {
-            if (window.shareCurrentView) window.shareCurrentView();
-        });
-        
-        // About link handler
-        document.getElementById('about-link')?.addEventListener('click', (e) => {
-            e.preventDefault();
-            if (window.navigateTo) window.navigateTo('about');
-        });
-        
-        // Timeline control handlers
-        document.getElementById('timeline-refresh')?.addEventListener('click', () => {
-            if (window.renderTimeline) window.renderTimeline();
-        });
-        
-        document.getElementById('timeline-granularity')?.addEventListener('change', () => {
-            if (window.renderTimeline) window.renderTimeline();
-        });
-        
-        document.getElementById('timeline-metric')?.addEventListener('change', () => {
-            if (window.renderTimeline) window.renderTimeline();
-        });
-    </script>
+        /* Accessibility: Skip link visible on focus */
+        .sr-only:focus {
+            position: absolute;
+            width: auto;
+            height: auto;
+            padding: 0.5rem 1rem;
+            margin: 0;
+            overflow: visible;
+            clip: auto;
+            white-space: normal;
+        }
+    </style>
 </body>
 </html>
