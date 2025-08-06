@@ -1,40 +1,224 @@
-/* General Body and Font Styling */
+/* =================================================================================
+   Strashun Library - Academic Modern Theme
+   ================================================================================= */
+
+/* --- Fonts --- */
+/* Lora for headings (scholarly feel) and Inter for UI/body text (clarity) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@400;500;600;700&display=swap');
+
+/* --- Root Variables for Colors --- */
+:root {
+    --bg-color: #F7FAFC; /* Light, warm gray */
+    --card-bg-color: #FFFFFF;
+    --text-primary: #2D3748; /* Dark gray for primary text */
+    --text-secondary: #718096; /* Lighter gray for secondary text */
+    --accent-primary: #4A5568; /* Slate Blue for primary actions/borders */
+    --accent-secondary: #718096; /* Slate gray for secondary accents */
+    --accent-green: #38A169;
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* --- Fixed Application Layout --- */
+html, body {
+    height: 100vh; /* Full viewport height */
+    overflow: hidden; /* Prevent the main window from scrolling */
+    margin: 0;
+}
+
 body {
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex-grow: 1; /* Allow main content to fill available vertical space */
+    overflow-y: auto; /* Make the main content area, and not the body, scrollable */
+}
+
+/* --- General Body and Typography --- */
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
     font-family: 'Inter', sans-serif;
-    background-color: #f0f2f5; /* A light grey background for the page */
 }
 
-/* Custom scrollbar for better aesthetics across the application */
-::-webkit-scrollbar {
-    width: 8px;
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Lora', serif;
+    font-weight: 600;
 }
 
-::-webkit-scrollbar-track {
-    background: #f1f1f1;
+/* --- Main Layout & Header --- */
+header {
+    flex-shrink: 0; /* Prevent header from shrinking */
+    background-color: var(--card-bg-color);
+    box-shadow: var(--card-shadow);
+    border-bottom: 1px solid #E2E8F0;
 }
 
-::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
+footer {
+    flex-shrink: 0; /* Prevent footer from shrinking */
 }
 
-::-webkit-scrollbar-thumb:hover {
-    background: #555;
+.nav-link {
+    transition: all 0.2s ease-in-out;
+    border-bottom: 2px solid transparent;
+    color: var(--text-secondary);
 }
 
-/* View Management Classes */
-/* Hides all views by default */
+.nav-link.active {
+    color: var(--accent-primary) !important;
+    border-bottom: 2px solid var(--accent-primary);
+    font-weight: 600;
+}
+
+.nav-link:hover:not(.active) {
+    color: var(--accent-primary);
+}
+
+/* --- Card and Container Styling --- */
+.card {
+    background-color: var(--card-bg-color);
+    border-radius: 0.75rem; /* Slightly larger radius */
+    box-shadow: var(--card-shadow);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* --- Chart Container --- */
+/* NEW: This class constrains the chart's height */
+.chart-container {
+    position: relative; /* Required by Chart.js for responsiveness */
+    flex-grow: 1; /* Allow chart container to fill the card's vertical space */
+    min-height: 300px; /* A sensible minimum height for charts */
+}
+
+
+/* --- View Management --- */
 .view {
     display: none;
+    height: 100%; /* Ensure views take up full height of main container */
 }
-
-/* Shows the currently active view */
 .view.active {
     display: block;
+    animation: fadeIn 0.5s;
 }
 
-/* Style for Right-to-Left (RTL) text, essential for Hebrew and Yiddish */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Form Elements & Buttons --- */
+.form-input, .form-select {
+    border-radius: 0.5rem;
+    border: 1px solid #CBD5E0;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    padding: 0.5rem 0.75rem;
+}
+
+.form-input:focus, .form-select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(74, 85, 104, 0.2);
+}
+
+.btn {
+    display: inline-block;
+    border-radius: 0.5rem;
+    padding: 0.6rem 1.2rem;
+    font-weight: 600;
+    transition: all 0.2s ease-in-out;
+    text-align: center;
+    border: none;
+}
+
+.btn-primary {
+    background-color: var(--accent-primary);
+    color: white;
+}
+.btn-primary:hover {
+    background-color: #2D3748;
+}
+
+.btn-secondary {
+    background-color: var(--accent-green);
+    color: white;
+}
+.btn-secondary:hover {
+    background-color: #2F855A;
+}
+
+/* --- List Item and Container Styling --- */
+.list-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    position: relative;
+}
+
+.list-item {
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid #EDF2F7;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.list-item:last-child {
+    border-bottom: none;
+}
+
+.list-item:hover {
+    background-color: #F7FAFC;
+}
+
+.list-item-title {
+    font-family: 'Lora', serif;
+    font-weight: 500;
+    color: var(--accent-primary);
+    font-size: 1.1rem;
+}
+
+.list-item-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+/* --- Pagination --- */
+.pagination-btn {
+    border: 1px solid #E2E8F0;
+    transition: all 0.2s;
+    background-color: white;
+    font-weight: 500;
+}
+.pagination-btn.active {
+    background-color: var(--accent-primary);
+    color: white;
+    border-color: var(--accent-primary);
+}
+.pagination-btn:hover:not(.active) {
+    background-color: #E2E8F0;
+    border-color: #CBD5E0;
+}
+
+/* --- RTL Support --- */
 .rtl {
     direction: rtl;
     text-align: right;
+}
+
+/* --- Scrollbar --- */
+::-webkit-scrollbar {
+    width: 10px;
+}
+::-webkit-scrollbar-track {
+    background: #EDF2F7;
+}
+::-webkit-scrollbar-thumb {
+    background: #A0AEC0;
+    border-radius: 5px;
+    border: 2px solid #EDF2F7;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-secondary);
 }
