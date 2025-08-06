@@ -13,7 +13,7 @@
     <!-- Academic Modern Stylesheet -->
     <link rel="stylesheet" href="style.css">
 
-    <!-- Tailwind CSS (for utility classes like hidden, md:flex etc.) -->
+    <!-- Tailwind CSS (for utility classes) -->
     <script src="https://cdn.tailwindcss.com"></script>
 
 </head>
@@ -39,6 +39,15 @@
                     <a href="#" class="nav-link px-4 py-2 text-sm font-medium" data-view="timeline">Timeline</a>
                 </nav>
 
+                <!-- Share Button (Desktop) -->
+                <div class="hidden md:flex items-center ml-4">
+                    <button id="share-button" class="p-2 rounded-md hover:bg-gray-100" title="Share current view">
+                        <svg class="h-5 w-5" style="color: var(--accent-primary);" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m9.032 4.026a3 3 0 10-4.732 2.684m4.732-2.684a3 3 0 00-4.732-2.684M6.316 10.658a3 3 0 10-4.732-2.684"></path>
+                        </svg>
+                    </button>
+                </div>
+
                 <!-- Mobile Menu Button -->
                 <div class="md:hidden">
                     <button id="mobile-menu-button" class="p-2 rounded-md" style="color: var(--accent-primary);" aria-label="Open main menu" aria-expanded="false" aria-controls="mobile-menu">
@@ -58,6 +67,7 @@
                 <a href="#" class="nav-link mobile block px-3 py-2 rounded-md text-base font-medium" data-view="borrowers">Borrowers</a>
                 <a href="#" class="nav-link mobile block px-3 py-2 rounded-md text-base font-medium" data-view="network">Network</a>
                 <a href="#" class="nav-link mobile block px-3 py-2 rounded-md text-base font-medium" data-view="timeline">Timeline</a>
+                <button id="mobile-share-button" class="w-full text-left px-3 py-2 rounded-md text-base font-medium" style="color: var(--accent-primary);">Share View</button>
             </div>
         </div>
     </header>
@@ -73,15 +83,37 @@
         <!-- Dashboard View -->
         <div id="dashboard-view" class="view active">
             <h2 class="text-3xl mb-8">Library Insights</h2>
+            
+            <!-- Statistics Summary Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="card p-4 text-center">
+                    <div class="text-2xl font-bold" style="color: var(--accent-primary);" id="stat-total-books">-</div>
+                    <div class="text-sm" style="color: var(--text-secondary);">Total Books</div>
+                </div>
+                <div class="card p-4 text-center">
+                    <div class="text-2xl font-bold" style="color: var(--accent-green);" id="stat-total-borrowers">-</div>
+                    <div class="text-sm" style="color: var(--text-secondary);">Total Borrowers</div>
+                </div>
+                <div class="card p-4 text-center">
+                    <div class="text-2xl font-bold" style="color: #D69E2E;" id="stat-total-transactions">-</div>
+                    <div class="text-sm" style="color: var(--text-secondary);">Total Transactions</div>
+                </div>
+                <div class="card p-4 text-center">
+                    <div class="text-2xl font-bold" style="color: #D53F8C;" id="stat-female-borrowers">-</div>
+                    <div class="text-sm" style="color: var(--text-secondary);">Female Borrowers</div>
+                </div>
+            </div>
+            
+            <!-- Charts Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div class="card">
-                    <h3 class="text-xl mb-4">Top 10 Most Borrowed Books</h3>
+                    <h3 class="text-xl mb-4">Top 20 Most Borrowed Books</h3>
                     <div class="chart-container">
                         <canvas id="popular-books-chart" class="cursor-pointer"></canvas>
                     </div>
                 </div>
                 <div class="card">
-                    <h3 class="text-xl mb-4">Top 10 Most Active Readers</h3>
+                    <h3 class="text-xl mb-4">Top 20 Most Active Readers</h3>
                     <div class="chart-container">
                         <canvas id="active-readers-chart" class="cursor-pointer"></canvas>
                     </div>
@@ -105,16 +137,39 @@
         <div id="books-view" class="view">
             <div class="card">
                 <h2 class="text-3xl mb-6">Book Catalog</h2>
-                <div class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                    <input type="text" id="book-search" placeholder="Search by title or author..." class="form-input w-full md:col-span-2">
+                
+                <!-- Filters and Search -->
+                <div class="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-center">
+                    <input type="text" id="book-search" placeholder="Search by title or author..." class="form-input w-full lg:col-span-2">
                     <select id="book-sort" class="form-select w-full">
                         <option value="relevance">Sort by Relevance</option>
                         <option value="alpha">Sort Alphabetically</option>
                         <option value="popularity">Sort by Popularity</option>
                     </select>
+                    <select id="book-period-filter" class="form-select w-full">
+                        <option value="all">All Periods</option>
+                        <option value="1902">1902</option>
+                        <option value="1903-1904">1903-1904</option>
+                        <option value="1934">1934</option>
+                        <option value="1940">1940</option>
+                    </select>
+                    <select id="book-collection-filter" class="form-select w-full">
+                        <option value="all">All Collections</option>
+                        <option value="general">General Collection</option>
+                        <option value="likutei">Likutei Shoshanim</option>
+                    </select>
                     <button id="book-export-csv" class="btn btn-secondary">Export CSV</button>
                 </div>
+                
+                <!-- Results Count -->
+                <div class="mb-4 text-sm" style="color: var(--text-secondary);">
+                    <span id="book-results-count">Showing 0 books</span>
+                </div>
+                
+                <!-- Book List -->
                 <div id="book-list" class="list-container pr-2"></div>
+                
+                <!-- Pagination -->
                 <div id="book-pagination" class="flex justify-center items-center mt-4 space-x-2"></div>
             </div>
         </div>
@@ -123,16 +178,33 @@
         <div id="borrowers-view" class="view">
             <div class="card">
                 <h2 class="text-3xl mb-6">Borrower List</h2>
-                <div class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-                    <input type="text" id="borrower-search" placeholder="Search by name..." class="form-input w-full md:col-span-2">
+                
+                <!-- Filters and Search -->
+                <div class="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-center">
+                    <input type="text" id="borrower-search" placeholder="Search by name..." class="form-input w-full lg:col-span-2">
                     <select id="borrower-gender-filter" class="form-select w-full">
                         <option value="all">All Genders</option>
                         <option value="F">Female</option>
                         <option value="M">Male/Unknown</option>
                     </select>
+                    <select id="borrower-activity-filter" class="form-select w-full">
+                        <option value="all">All Activity Levels</option>
+                        <option value="1-5">1-5 books</option>
+                        <option value="6-20">6-20 books</option>
+                        <option value="21+">21+ books</option>
+                    </select>
                     <button id="borrower-export-csv" class="btn btn-secondary">Export CSV</button>
                 </div>
+                
+                <!-- Results Count -->
+                <div class="mb-4 text-sm" style="color: var(--text-secondary);">
+                    <span id="borrower-results-count">Showing 0 borrowers</span>
+                </div>
+                
+                <!-- Borrower List -->
                 <div id="borrower-list" class="list-container pr-2"></div>
+                
+                <!-- Pagination -->
                 <div id="borrower-pagination" class="flex justify-center items-center mt-4 space-x-2"></div>
             </div>
         </div>
@@ -141,7 +213,49 @@
         <div id="network-view" class="view">
             <div class="card">
                 <h2 class="text-3xl mb-6">Borrower-Book Network</h2>
-                <div id="network-graph" class="w-full border rounded-lg" style="border-color: #E2E8F0; flex-grow: 1;"></div>
+                
+                <!-- Network Filters -->
+                <div class="mb-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <select id="network-period-filter" class="form-select">
+                        <option value="all">All Periods</option>
+                        <option value="1902">1902</option>
+                        <option value="1903-1904">1903-1904</option>
+                        <option value="1934">1934</option>
+                        <option value="1940">1940</option>
+                    </select>
+                    <select id="network-min-connections" class="form-select">
+                        <option value="0">All Books</option>
+                        <option value="2">2+ Borrowers</option>
+                        <option value="5">5+ Borrowers</option>
+                        <option value="10">10+ Borrowers</option>
+                    </select>
+                    <select id="network-gender-filter" class="form-select">
+                        <option value="all">All Genders</option>
+                        <option value="female">Female Borrowers</option>
+                        <option value="male">Male/Unknown</option>
+                    </select>
+                    <button id="network-refresh" class="btn btn-primary">Apply Filters</button>
+                </div>
+                
+                <!-- Network Stats -->
+                <div class="mb-4 text-sm" style="color: var(--text-secondary);">
+                    <span id="network-stats">Nodes: 0 | Edges: 0</span>
+                </div>
+                
+                <!-- Network Graph Container -->
+                <div id="network-graph" class="w-full border rounded-lg" style="border-color: #E2E8F0; height: 600px;"></div>
+                
+                <!-- Network Legend -->
+                <div class="mt-4 flex items-center justify-center space-x-6 text-sm">
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 rounded-full mr-2" style="background-color: #63B3ED;"></div>
+                        <span>Books</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-4 h-4 rounded-full mr-2" style="background-color: #68D391;"></div>
+                        <span>Borrowers</span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -149,8 +263,35 @@
         <div id="timeline-view" class="view">
             <div class="card">
                 <h2 class="text-3xl mb-6">Borrowing Trends Over Time</h2>
-                <div class="chart-container">
+                
+                <!-- Timeline Controls -->
+                <div class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <select id="timeline-granularity" class="form-select">
+                        <option value="year">By Year</option>
+                        <option value="period">By Period</option>
+                    </select>
+                    <select id="timeline-metric" class="form-select">
+                        <option value="transactions">Total Transactions</option>
+                        <option value="unique-books">Unique Books</option>
+                        <option value="unique-borrowers">Unique Borrowers</option>
+                    </select>
+                    <button id="timeline-refresh" class="btn btn-primary">Update Chart</button>
+                </div>
+                
+                <!-- Timeline Chart -->
+                <div class="chart-container" style="height: 400px;">
                     <canvas id="timeline-chart" class="w-full"></canvas>
+                </div>
+                
+                <!-- Historical Context -->
+                <div class="mt-6 p-4 rounded-lg" style="background-color: #F7FAFC;">
+                    <h4 class="font-semibold mb-2">Historical Context</h4>
+                    <div class="text-sm" style="color: var(--text-secondary);">
+                        <p class="mb-2"><strong>1902:</strong> Early period of the library's operation</p>
+                        <p class="mb-2"><strong>1903-1904:</strong> Expansion period before WWI</p>
+                        <p class="mb-2"><strong>1934:</strong> Interwar period, cultural flourishing</p>
+                        <p><strong>1940:</strong> Final records before the Holocaust</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -160,19 +301,112 @@
             <div class="card">
                 <div class="flex justify-between items-center mb-6">
                     <button id="back-to-list" class="btn btn-primary">← Back to List</button>
-                    <button id="detail-export-json" class="btn btn-secondary">Export JSON</button>
+                    <div class="space-x-2">
+                        <button id="detail-share" class="btn btn-secondary">Share</button>
+                        <button id="detail-export-json" class="btn btn-secondary">Export JSON</button>
+                    </div>
                 </div>
                 <div id="detail-content"></div>
+                
+                <!-- Related Items Section -->
+                <div id="related-items" class="mt-8 pt-6 border-t" style="border-color: #E2E8F0;">
+                    <h3 class="text-xl mb-4">Related Items</h3>
+                    <div id="related-content" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- About View (Hidden by default, accessible via URL) -->
+        <div id="about-view" class="view">
+            <div class="card">
+                <h2 class="text-3xl mb-6">About the Strashun Library Digital Interface</h2>
+                
+                <div class="prose max-w-none">
+                    <p class="mb-4">
+                        The Strashun Library Digital Interface provides access to the historical lending records 
+                        of the Strashun Library of Vilna, one of the most important Jewish libraries in pre-Holocaust Europe.
+                    </p>
+                    
+                    <h3 class="text-xl mt-6 mb-3">The Collection</h3>
+                    <p class="mb-4">
+                        This digital archive contains over 5,000 borrowing transactions spanning four distinct periods 
+                        (1902, 1903-1904, 1934, and 1940), documenting the reading habits and intellectual life of the 
+                        Jewish community in Vilna.
+                    </p>
+                    
+                    <h3 class="text-xl mt-6 mb-3">Using the Interface</h3>
+                    <ul class="list-disc pl-6 mb-4">
+                        <li>Search for specific books or borrowers using the search bars</li>
+                        <li>Apply filters to focus on specific time periods or demographics</li>
+                        <li>Explore the network visualization to discover connections</li>
+                        <li>Export data for your own research and analysis</li>
+                        <li>Share specific views using the share button</li>
+                    </ul>
+                    
+                    <h3 class="text-xl mt-6 mb-3">Data Sources</h3>
+                    <p class="mb-4">
+                        The data has been carefully transcribed from original ledgers and enriched with metadata 
+                        from the National Library of Israel (NLI) and YIVO Institute for Jewish Research.
+                    </p>
+                    
+                    <h3 class="text-xl mt-6 mb-3">Credits</h3>
+                    <p class="mb-4">
+                        This project is part of the Edward Blank YIVO Vilna Online Collections Project, 
+                        developed in collaboration with the Fortunoff Video Archive for Holocaust Testimonies at Yale University.
+                    </p>
+                </div>
             </div>
         </div>
     </main>
     
     <!-- Footer -->
     <footer class="text-center py-4 mt-auto" style="color: var(--text-secondary);" role="contentinfo">
-        <p>Strashun Library Digital Interface Project. Data courtesy of the project contributors.</p>
+        <p>
+            Strashun Library Digital Interface Project | 
+            <a href="#about" id="about-link" class="hover:underline" style="color: var(--accent-primary);">About</a> | 
+            <a href="https://github.com/yourusername/strashun-library" target="_blank" class="hover:underline" style="color: var(--accent-primary);">GitHub</a> |
+            Data courtesy of the project contributors
+        </p>
     </footer>
 
     <!-- Main Application Logic -->
     <script src="main.js"></script>
+    
+    <!-- Additional Event Handlers -->
+    <script>
+        // Share button handlers
+        document.getElementById('share-button')?.addEventListener('click', () => {
+            if (window.shareCurrentView) window.shareCurrentView();
+        });
+        
+        document.getElementById('mobile-share-button')?.addEventListener('click', () => {
+            if (window.shareCurrentView) window.shareCurrentView();
+            // Close mobile menu
+            document.getElementById('mobile-menu').classList.add('hidden');
+        });
+        
+        document.getElementById('detail-share')?.addEventListener('click', () => {
+            if (window.shareCurrentView) window.shareCurrentView();
+        });
+        
+        // About link handler
+        document.getElementById('about-link')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (window.navigateTo) window.navigateTo('about');
+        });
+        
+        // Timeline control handlers
+        document.getElementById('timeline-refresh')?.addEventListener('click', () => {
+            if (window.renderTimeline) window.renderTimeline();
+        });
+        
+        document.getElementById('timeline-granularity')?.addEventListener('change', () => {
+            if (window.renderTimeline) window.renderTimeline();
+        });
+        
+        document.getElementById('timeline-metric')?.addEventListener('change', () => {
+            if (window.renderTimeline) window.renderTimeline();
+        });
+    </script>
 </body>
 </html>
