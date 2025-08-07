@@ -8,9 +8,9 @@ const Config = {
     ITEMS_PER_PAGE: 20,
     SEARCH_DELAY: 300,
     API: { 
-        dataPath: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? '../app/library_data.json'     // Lokal: gehe einen Ordner hoch
-            : '../app/library_data.json'     // GitHub Pages: gleicher Pfad sollte funktionieren
+        dataPath: window.location.hostname.includes('github.io')
+            ? 'https://raw.githubusercontent.com/chpollin/strashun/main/app/library_data.json'
+            : '../app/library_data.json'
     }
 };
 // --- Global State ---
