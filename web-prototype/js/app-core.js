@@ -7,8 +7,12 @@
 const Config = {
     ITEMS_PER_PAGE: 20,
     SEARCH_DELAY: 300,
-    // Path fixed based on your directory structure
-    API: { dataPath: '../../app/library_data.json' }
+    // Fix the path for GitHub Pages
+    API: { 
+        dataPath: window.location.hostname === 'localhost' 
+            ? './app/library_data.json'  // Local development
+            : './library_data.json'      // GitHub Pages (file in root)
+    }
 };
 
 // --- Global State ---
