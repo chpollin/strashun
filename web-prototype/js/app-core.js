@@ -7,10 +7,12 @@
 const Config = {
     ITEMS_PER_PAGE: 20,
     SEARCH_DELAY: 300,
-    // Fixed path for GitHub Pages
-    API: { dataPath: './app/library_data.json' }
+    API: { 
+        dataPath: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? '../app/library_data.json'     // Lokal: gehe einen Ordner hoch
+            : '../app/library_data.json'     // GitHub Pages: gleicher Pfad sollte funktionieren
+    }
 };
-
 // --- Global State ---
 const AppState = {
     libraryData: { books: [], borrowers: [], transactions: [], stats: {}, network_data: {} },
