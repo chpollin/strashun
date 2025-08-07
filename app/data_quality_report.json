@@ -1,0 +1,83 @@
+{
+  "timestamp": "2025-08-07T09:49:59.498754",
+  "version": "2.0",
+  "summary": {
+    "transactions": {
+      "total": 5310,
+      "with_dates": "4978",
+      "with_returns": 0,
+      "with_books": "4976",
+      "with_borrowers": "5009",
+      "completeness_rate": 93.71
+    },
+    "borrowers": {
+      "total": 1587,
+      "single_book_borrowers": 976,
+      "power_users": 30,
+      "super_users": 7,
+      "gender_distribution": {
+        "female": 69,
+        "male": 1518,
+        "unknown": 0,
+        "female_percentage": 4.35
+      }
+    },
+    "books": {
+      "total_cataloged": 1261,
+      "total_with_transactions": 2897,
+      "ghost_records": 1636,
+      "never_borrowed": 1261,
+      "utilization_rate": 56.47,
+      "most_popular": {
+        "title": "\u05d0\u05d7\u05d9\u05d0\u05e1\u05e3. \u05ea\u05e8\u05e1\"\u05d2 ",
+        "transactions": 245
+      }
+    }
+  },
+  "issues": [
+    {
+      "type": "ghost_records",
+      "severity": "medium",
+      "count": 1636,
+      "message": "1636 books appear in transactions but not in the catalog",
+      "sample_ids": [
+        990011959210205184,
+        990025053610205184,
+        990011964330205184,
+        990020096170205184,
+        990010615210205184,
+        990012520490205184,
+        990020942250205184,
+        990011323690205184,
+        990013264810205184,
+        990018546090205184
+      ]
+    }
+  ],
+  "warnings": [
+    {
+      "type": "missing_columns",
+      "columns": [
+        "return_date"
+      ],
+      "message": "Expected columns not found in data: return_date"
+    },
+    {
+      "type": "no_return_dates",
+      "message": "Return date column not found in data"
+    }
+  ],
+  "info": [
+    {
+      "type": "temporal_coverage",
+      "message": "Data covers multiple time periods with gaps",
+      "periods": [
+        "1902",
+        "1903-1904",
+        "1934",
+        "1940"
+      ],
+      "gap_years": "1905-1933 (28 years)"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+STRASHUN LIBRARY DATA SUMMARY
+==================================================
+
+Generated: 2025-08-07 09:49:59
+
+Total Transactions: 5,310
+Total Borrowers: 1,587
+Total Books: 2,897
+  - From Catalog: 1,261
+  - Ghost Records: 1,636
+
+Data Completeness: 93.71%
+
+Gender Distribution:
+  - Female: 69
+  - Male: 1,518
+  - Unknown: 0
+
+Reading Patterns:
+  - Single-book borrowers: 976
+  - Power users (20+ books): 30
+  - Super users (50+ books): 7

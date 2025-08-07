@@ -22,18 +22,18 @@
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📚</text></svg>">
 </head>
-<body class="bg-gray-50">
+<body>
     <!-- Loading Spinner -->
     <div id="loading-spinner" class="fixed inset-0 bg-white z-50 flex items-center justify-center">
         <div class="text-center">
             <div class="spinner w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p class="text-lg text-gray-600">Loading library data...</p>
-            <p class="text-sm text-gray-400 mt-2">Preparing 4,942 transactions from historical records...</p>
+            <p class="text-sm text-gray-400 mt-2">Preparing 5,310 transactions from historical records...</p>
         </div>
     </div>
 
     <!-- Main Application -->
-    <div id="main-content" style="display: none;">
+    <div id="main-content" class="hidden">
         <!-- Header -->
         <header class="bg-white shadow-sm border-b">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -79,7 +79,7 @@
         </header>
 
         <!-- Main Content Area -->
-        <main class="flex-1 overflow-y-auto">
+        <main>
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 
                 <!-- Dashboard View -->
@@ -392,8 +392,8 @@
 
                             <h3 class="text-xl font-semibold mt-6 mb-3">The Collection</h3>
                             <p class="mb-4">
-                                The dataset contains <strong>4,942 borrowing transactions</strong> involving 
-                                <strong>1,414 individual readers</strong> and <strong>1,603 unique books</strong>, 
+                                The dataset contains <strong>5,310 borrowing transactions</strong> involving 
+                                <strong>1,587 individual readers</strong> and <strong>2,897 unique books</strong>, 
                                 offering unprecedented insights into the reading habits and intellectual life of 
                                 the Jewish community in Vilna between 1902 and 1940.
                             </p>
@@ -415,15 +415,15 @@
                             <h3 class="text-xl font-semibold mt-6 mb-3">Key Findings</h3>
                             <ul class="list-disc pl-6 mb-4">
                                 <li>Hebrew periodicals dominated the most-borrowed materials</li>
-                                <li>Extreme seasonality with 86% of borrowing in November-December</li>
-                                <li>57.4% of readers borrowed only a single book</li>
+                                <li>Extreme seasonality with 80% of borrowing in November-December</li>
+                                <li>61% of readers borrowed only a single book</li>
                                 <li>Dramatic decline in usage from early 1900s to 1940 (93% decrease)</li>
                             </ul>
 
                             <h3 class="text-xl font-semibold mt-6 mb-3">Technical Notes</h3>
                             <p class="mb-4">
                                 This visualization addresses significant challenges including 99.7% data sparsity, 
-                                temporal discontinuities, and 21.2% of transactions lacking complete metadata 
+                                temporal discontinuities, and 56% of transactions lacking complete metadata 
                                 ("ghost records"). The project employs novel visualization approaches including 
                                 ego-network analysis for handling sparse historical data.
                             </p>
@@ -459,11 +459,11 @@
                         <a href="#" id="about-link" class="text-blue-600 hover:underline">About</a>
                     </div>
                     <div class="flex space-x-4 text-sm text-gray-600">
-                        <span>4,942 transactions</span>
+                        <span>5,310 transactions</span>
                         <span>•</span>
-                        <span>1,414 borrowers</span>
+                        <span>1,587 borrowers</span>
                         <span>•</span>
-                        <span>1,603 books</span>
+                        <span>2,897 books</span>
                     </div>
                 </div>
             </div>
@@ -474,16 +474,16 @@
     <div id="ego-network-modal" style="display: none;"></div>
 
     <!-- Core modules -->
-<script src="js/app-core.js"></script>
-<script src="js/app-views.js"></script>
+    <script src="js/app-core.js"></script>
+    <script src="js/app-views.js"></script>
 
-<!-- Visualization modules -->
-<script src="js/vis/ego-network.js"></script>
-<script src="js/vis/charts.js"></script>
-<script src="js/vis/timeline.js"></script>
+    <!-- Visualization modules -->
+    <script src="js/vis/ego-network.js"></script>
+    <script src="js/vis/charts.js"></script>
+    <script src="js/vis/timeline.js"></script>
 
-<!-- Initialize everything -->
-<script src="js/app-init.js"></script>
+    <!-- Initialize everything -->
+    <script src="js/app-init.js"></script>
 
 </body>
 </html>
